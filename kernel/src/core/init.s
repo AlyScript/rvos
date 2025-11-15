@@ -9,7 +9,6 @@
 .equ SYSTEM_CONTROLLER,        0x00010700      /* System Controller Base Address */
 .equ SC_BITMASK,               0x000000C0      /* System Controller Pin Mask */
 .equ MPP_BITMASK,              0x00001800      /* MSTATUS[12:11] bits for Machine Previous Privilege Mode */
-.equ MAIN_START,               0x00040000      /* User Program Start Address (MEPC) */
 .equ USER_STACK_END,           0x00080000      /* User Stack */
 
 /* ----------------------------------------- Machine Mode Initialisation ----------------------------------------- */
@@ -31,8 +30,8 @@ _start:
 
     la sp, USER_STACK_END       /* Set the (user) stack pointer to the (user) stack address */
 
-    /* Set MEPC to the start of our user program */
-    la ra, MAIN_START
+    /* Set MEPC to the start of main which is linked in. */
+    la ra, main
     csrw mepc, ra
 
     /* Enable Interrupts on the Processor */
