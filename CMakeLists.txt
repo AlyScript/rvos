@@ -14,10 +14,10 @@ target_link_options(
     prog.elf
     PRIVATE
         -T${LINKER_SCRIPT}
-        -march=rv32im
         -fno-exceptions
         -nostartfiles
         -nostdlib
+        -march=rv32im_zicsr
         -mabi=ilp32
 )
 
