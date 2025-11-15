@@ -1,7 +1,7 @@
 ENTRY(_start)
 
 OUTPUT_ARCH(riscv)
-OUTPUT_FORMAT(elf32-littleriscv) /* Ensure correct ELF format is output */
+OUTPUT_FORMAT(elf32-littleriscv) /* 32-bit little endian */
 
 MEMORY
 {
@@ -27,17 +27,17 @@ SECTIONS
     .bss : 
     {
         *(.bss)    
-    }
+    }> INSTR
 
     .data : 
     {
         *(.data)    
-    }
+    }> INSTR
 
     .rodata : 
     {
         *(.rodata)    
-    }
+    }> INSTR
 
 }
 
