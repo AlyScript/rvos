@@ -9,7 +9,12 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/kernel/src)
 
 set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld)
 
-add_executable(prog.elf ${SRC_DIR}/core/init.s ${SRC_DIR}/main.c)
+add_executable(
+    prog.elf
+    ${SRC_DIR}/core/init.s
+    ${SRC_DIR}/core/zerobss.s
+    ${SRC_DIR}/main.c
+)
 target_link_options(
     prog.elf
     PRIVATE
