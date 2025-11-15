@@ -41,5 +41,12 @@ SECTIONS
         *(.rodata)    
     }> INSTR
 
+    .heap :
+    {
+        __heap_start = .;
+        . += 32K;
+        __heap_end   = .;
+    }> INSTR
+
 }
 

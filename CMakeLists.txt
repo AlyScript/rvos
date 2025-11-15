@@ -9,12 +9,18 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/kernel/src)
 
 set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld)
 
+set(NEWLIB_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/newlib)
+
 add_executable(
     prog.elf
     ${SRC_DIR}/core/init.s
     ${SRC_DIR}/core/zerobss.s
     ${SRC_DIR}/main.c
+    ${SRC_DIR}/syscalls/syscalls.c
 )
+target_include_directories(prog.elf PRIVATE ${NEWLIB_ROOT}/include)
+target_link_directories(prog.elf PRIVATE ${NEWLIB_ROOT}/lib)
+target_link_libraries(prog.elf PRIVATE c gcc)
 target_link_options(
     prog.elf
     PRIVATE
