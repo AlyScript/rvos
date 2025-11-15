@@ -1,0 +1,44 @@
+KMD
+0 : 1080006f ; j108<user_main>
+0 :  ;  }
+0 :  ;  
+0 :  ;  /** Startup function  */
+0 :  ;  void _start()   {
+0 :  ;  
+0 :  ;      user_main();
+256 : fff00513 ; lia0,-1
+256 :  ;  }
+260 : 00008067 ; ret
+264 : ff010113 ; addisp,sp,-16
+264 :  ;  }
+264 :  ;  
+264 :  ;  /** Actual main function */
+264 :  ;  int user_main() {
+268 : 00800593 ; lia1,8
+268 :  ;  
+268 :  ;      /** Calculating some useful value */
+268 :  ;      int a = some_lib(3, 8);
+272 : 00300513 ; lia0,3
+276 : 00112623 ; swra,12(sp)
+276 :  ;  int user_main() {
+280 : 018000ef ; jalra,130<some_lib>
+280 :  ;      int a = some_lib(3, 8);
+284 : 00c12083 ; lwra,12(sp)
+284 :  ;      /** Pointer into device memory  */
+284 :  ;      volatile register int *memory = (int*) DEVICE_MEMORY_LOCATION;
+284 :  ;  
+284 :  ;      /** Writing to device memory */
+284 :  ;      *memory = a;
+288 : 000107b7 ; luia5,0x10
+288 :  ;      *memory = a;
+292 : 10a7a023 ; swa0,256(a5)#10100<some_lib+0xffd0>
+296 : 01010113 ; addisp,sp,16
+300 : 00008067 ; ret
+304 : 00b50533 ; adda0,a0,a1
+304 :  ;  #include "lib.h"
+304 :  ;  
+304 :  ;  /** Implementation of a userful library function  */
+304 :  ;  int some_lib(int a, int b) {
+304 :  ;      return a + b;
+304 :  ;  }
+308 : 00008067 ; ret
