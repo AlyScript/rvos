@@ -1,3 +1,4 @@
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/riscv.cmake)
 project(rvos)
 
 enable_language(ASM)
