@@ -1,7 +1,7 @@
 ;-----------------------------------------------------
 ; print - Print a null-terminated string to the screen
 ; Arguments:
-;   a1: Pointer to the string to be printed
+;   a0: Pointer to the string to be printed
 ;-----------------------------------------------------
 
 INCLUDE puts.s
@@ -11,6 +11,8 @@ print
 	subi sp, sp, 8
 	sw ra, 4[sp]
 	sw s0, [sp]
+
+    mv a1, a0  ; Pointer to string should be in a0 if called from C
 
 	; Move the string pointer from a1 to s0
 	mv s0, a1  ; s0 = a1 (pointer to the string)
