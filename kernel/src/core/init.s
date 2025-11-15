@@ -54,7 +54,13 @@ _start:
     la t1, SYSTEM_CONTROLLER
     sw t0, 8(t1)                /* Set pins 6-7 to alternative function */
 
+    /* Before we return to user application, call a function that will zero the bss section and set up the C runtime */ 
+    call zero_bss
+
     mret
+
+    /* Should probably not reach here, but if we do then just jump back to reset address. */
+    j _start
 
     .size start, .-_start       /* Current address (.) - _start */
 
