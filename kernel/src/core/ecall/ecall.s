@@ -130,7 +130,7 @@ ecall_65:
 ecall_66:   
     subi sp, sp, 4
     sw ra, [sp]
-    # call timer_write
+    call timer_write
     lw ra, [sp]
     addi sp, sp, 4
     ret

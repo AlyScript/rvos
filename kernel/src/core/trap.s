@@ -116,11 +116,11 @@ handle_machine_external:
 
     beqz t1, handle_machine_external_exit   ; If there are no active interrupts, exit
 
-find_active_interrupt:
+find_active_interrupt
     li s1, 0x1                              ; Start with LSB
     li s2, 0                                ; Bit position counter
 
-check_interrupt:
+check_interrupt
     and t3, t1, s1                          ; Check if the `s2`th bit (s1) is set
     bnez t3, handle_interrupt               ; If it is, jump to the interrupt service routine
 
@@ -131,14 +131,14 @@ check_interrupt:
 
     j handle_machine_external_exit
 
-handle_interrupt:
+handle_interrupt
     la s0, isr_jump                         ; Load the address of the interrupt service routine jump table
     slli s2, s2, 2                          ; Multiply the bit position by 4 to get the correct offset
     add s0, s2, s0                          ; Add the offset to the table
     lw s0, [s0]                             ; Load the address of the interrupt service routine
     jalr s0                                 ; Call the interrupt service routine
 
-handle_machine_external_exit:
+handle_machine_external_exit
 
     lw s2, [sp]                             ; Restore working registers and ra
     lw s1, 4[sp]

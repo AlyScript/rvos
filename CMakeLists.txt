@@ -16,6 +16,7 @@ add_executable(
     ${SRC_DIR}/core/init.s
     ${SRC_DIR}/core/trap_new.s
     ${SRC_DIR}/core/interrupt/interrupt.s
+    ${SRC_DIR}/core/ecall/ecall_new.c
     ${SRC_DIR}/core/zerobss.s
     ${SRC_DIR}/main.c
     ${SRC_DIR}/syscalls/syscalls.c

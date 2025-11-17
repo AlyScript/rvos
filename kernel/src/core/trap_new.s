@@ -4,7 +4,6 @@
 .equ INTERRUPT_CONTROLLER,  0x00010400
 .equ ECALL_MAX,  440
 
-
 /* We assume that it is an interrupt and jump to the exception handler, to minimise latency for an interrupt */
 
 .section .text.trap
@@ -159,10 +158,6 @@ handle_load_page_fault:
 handle_reserved_future:       
 handle_store_page_fault:      
 
-ecall_0:
-
-
-
 /* ------------------------------------------------------------------ FUNCTION TABLES ------------------------------------------------------------------ */
 /* ------------------------------------------------------------- Kept in .rodata section! -------------------------------------------------------------- */
 .section .rodata
@@ -207,4 +202,4 @@ interrupt_table:
 
 .global ecall_jump
 ecall_jump:
-    .word ecall_0
+    .word sys_write
