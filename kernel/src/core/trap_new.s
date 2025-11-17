@@ -4,11 +4,6 @@
 .equ INTERRUPT_CONTROLLER,  0x00010400
 .equ ECALL_MAX,  440
 
-.section .rodata
-.align 2
-.global ecall_jump
-ecall_jump:
-    .word ecall_0
 
 /* We assume that it is an interrupt and jump to the exception handler, to minimise latency for an interrupt */
 
@@ -63,24 +58,6 @@ exception_handler:
 
     j mhandler_exit                      /* Return from the exception handler */
 
-/* ----------------------------------------------------------- INTERRUPT TABLE & SERVICE ROUTINES ------------------------------------------------------------ */
-.section .rodata
-.align 2
-.global interrupt_table
-interrupt_table:
-    .word handle_interrupt_0             /* 0 - User Software Interrupt */
-    .word handle_interrupt_1             /* 1 - Supervisor Software Interrupt */
-    .word handle_interrupt_2             /* 2 - Reserved */
-    .word handle_interrupt_3             /* 3 - Machine Software Interrupt */
-    .word handle_interrupt_4             /* 4 - User Timer Interrupt */
-    .word handle_interrupt_5             /* 5 - Supervisor Timer Interrupt */
-    .word handle_interrupt_6             /* 6 - Reserved */
-    .word handle_interrupt_7             /* 7 - Machine Timer Interrupt */
-    .word handle_interrupt_8             /* 8 - User External Interrupt */
-    .word handle_interrupt_9             /* 9 - Supervisor External Interrupt */
-    .word handle_interrupt_10            /* 10 - Reserved */
-    .word handle_machine_external        /* 11 - Machine External Interrupt */
-    # .byte 0xDE, 0xAD, 0xBE, 0xEF
 
 handle_interrupt_0:
 handle_interrupt_1:
@@ -154,25 +131,7 @@ handle_machine_external_exit:
 
     ret
 
-/* ------------------------------------------------------------------ TRAP TABLE & HANDLERS ------------------------------------------------------------------ */
 
-trap_table:
-    .word handle_instr_addr_misaligned    /* 0 - Instruction address misaligned */
-    .word handle_instr_access_fault       /* 1 - Instruction access fault */
-    .word handle_illegal_instr            /* 2 - Illegal instruction */
-    .word handle_breakpoint               /* 3 - Breakpoint */
-    .word handle_load_addr_misaligned     /* 4 - Load address misaligned */
-    .word handle_load_access_fault        /* 5 - Load access fault */
-    .word handle_store_addr_misaligned    /* 6 - Store address misaligned */
-    .word handle_store_access_fault       /* 7 - Store access fault */
-    .word handle_ecall_umode              /* 8 - Environment call from U-mode */
-    .word handle_ecall_smode              /* 9 - Environment call from S-mode */
-    .word handle_reserved                 /* 10 - Reserved */
-    .word handle_ecall_mmode              /* 11 - Environment call from M-mode */
-    .word handle_instr_page_fault         /* 12 - Instruction page fault */
-    .word handle_load_page_fault          /* 13 - Load page fault */
-    .word handle_reserved_future          /* 14 - Reserved for future standard use */
-    .word handle_store_page_fault         /* 15 - Store page fault */
 
 handle_instr_addr_misaligned:  
 handle_instr_access_fault:     
@@ -201,3 +160,51 @@ handle_reserved_future:
 handle_store_page_fault:      
 
 ecall_0:
+
+
+
+/* ------------------------------------------------------------------ FUNCTION TABLES ------------------------------------------------------------------ */
+/* ------------------------------------------------------------- Kept in .rodata section! -------------------------------------------------------------- */
+.section .rodata
+.align 2
+
+/* ------------------------------------------------------------------ TRAP TABLE & HANDLERS ------------------------------------------------------------------ */
+.global trap_table
+trap_table:
+    .word handle_instr_addr_misaligned    /* 0 - Instruction address misaligned */
+    .word handle_instr_access_fault       /* 1 - Instruction access fault */
+    .word handle_illegal_instr            /* 2 - Illegal instruction */
+    .word handle_breakpoint               /* 3 - Breakpoint */
+    .word handle_load_addr_misaligned     /* 4 - Load address misaligned */
+    .word handle_load_access_fault        /* 5 - Load access fault */
+    .word handle_store_addr_misaligned    /* 6 - Store address misaligned */
+    .word handle_store_access_fault       /* 7 - Store access fault */
+    .word handle_ecall_umode              /* 8 - Environment call from U-mode */
+    .word handle_ecall_smode              /* 9 - Environment call from S-mode */
+    .word handle_reserved                 /* 10 - Reserved */
+    .word handle_ecall_mmode              /* 11 - Environment call from M-mode */
+    .word handle_instr_page_fault         /* 12 - Instruction page fault */
+    .word handle_load_page_fault          /* 13 - Load page fault */
+    .word handle_reserved_future          /* 14 - Reserved for future standard use */
+    .word handle_store_page_fault         /* 15 - Store page fault */
+
+/* ----------------------------------------------------------- INTERRUPT TABLE & SERVICE ROUTINES ------------------------------------------------------------ */
+.global interrupt_table
+interrupt_table:
+    .word handle_interrupt_0             /* 0 - User Software Interrupt */
+    .word handle_interrupt_1             /* 1 - Supervisor Software Interrupt */
+    .word handle_interrupt_2             /* 2 - Reserved */
+    .word handle_interrupt_3             /* 3 - Machine Software Interrupt */
+    .word handle_interrupt_4             /* 4 - User Timer Interrupt */
+    .word handle_interrupt_5             /* 5 - Supervisor Timer Interrupt */
+    .word handle_interrupt_6             /* 6 - Reserved */
+    .word handle_interrupt_7             /* 7 - Machine Timer Interrupt */
+    .word handle_interrupt_8             /* 8 - User External Interrupt */
+    .word handle_interrupt_9             /* 9 - Supervisor External Interrupt */
+    .word handle_interrupt_10            /* 10 - Reserved */
+    .word handle_machine_external        /* 11 - Machine External Interrupt */
+    # .byte 0xDE, 0xAD, 0xBE, 0xEF
+
+.global ecall_jump
+ecall_jump:
+    .word ecall_0

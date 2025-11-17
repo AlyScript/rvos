@@ -37,7 +37,6 @@ isr_jump:
     .word isr_8
     .word isr_9
     .word isr_10
-    .align 2
 
 /*--------------------------------------------------------------------
  *  Interrupt service routines – placed in the trap section

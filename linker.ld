@@ -5,9 +5,9 @@ OUTPUT_FORMAT(elf32-littleriscv) /* 32-bit little endian */
 
 MEMORY
 {
-    SYS (rwx)         : ORIGIN = 0x0,          LENGTH = 16K
+    SYS (rx)         : ORIGIN = 0x0,          LENGTH = 16K
     TRAP (rx)         : ORIGIN = 0x00002000,   LENGTH = 1K
-    INSTR (rwx)       : ORIGIN = 0x00040000,   LENGTH = 256K
+    INSTR (rx)       : ORIGIN = 0x00040000,   LENGTH = 256K
 }
 
 SECTIONS
