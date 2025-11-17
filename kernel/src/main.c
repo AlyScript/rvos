@@ -3,10 +3,12 @@
 #define ADDR 0x00040200
 
 int main() {
+
   // int *ptr = (int *)ADDR;
   // *ptr = 0x10101010;
   //
-  printf("\n");
+  const char msg[] = "Hello via _write\n";
+  _write(1, msg, sizeof(msg) - 1);
   while (1) {
   }
   return 0;
