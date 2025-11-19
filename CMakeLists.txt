@@ -46,8 +46,6 @@ if(MAKE_KMD)
         COMMAND
             python3 ${CMAKE_CURRENT_SOURCE_DIR}/etok/main.py
             executable_sections.txt data.txt prog.kmd
-        # ${CMAKE_CURRENT_SOURCE_DIR}/elf/elftokmd $<TARGET_FILE:prog.elf>
-        # ${CMAKE_CURRENT_BINARY_DIR}/prog.kmd
         COMMENT "Creating .kmd file"
         VERBATIM
     )
