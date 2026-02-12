@@ -1,0 +1,21 @@
+#!/bin/bash
+
+KERNEL="build/kernel.bin"
+MACHINE="virt"
+CPUS=1
+
+QEMU_CMD="qemu-system-riscv64 -M $MACHINE -display none -serial stdio -kernel $KERNEL -smp $CPUS"
+
+# Debug flags: 
+# -s: shorthand for -gdb tcp::1234
+# -S: freeze CPU at startup (wait for 'continue' in gdb)
+DEBUG_FLAGS="-s -S"
+
+if [[ "$1" == "--debug" || "$1" == "-d" ]]; then
+    echo "Starting QEMU in Debug Mode..."
+    echo "GDB server listening on port 1234. Execution frozen until 'continue'."
+    $QEMU_CMD $DEBUG_FLAGS
+else
+    echo "Starting QEMU..."
+    $QEMU_CMD
+fi

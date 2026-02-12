@@ -1,6 +1,6 @@
 .equ SPP_BITMASK, 0x100          /* SSTATUS[8] bit for Supervisor Previous Privilege Mode */
 
-.section .text.sys
+.section .text.sys.start
 .global _start
 _start:
     li t0, SPP_BITMASK 

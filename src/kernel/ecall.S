@@ -41,7 +41,7 @@ __shandler:
     mv a0, sp
     call handle_syscall
 
-    /* TODO: Get implements going when needed */
+    /* TODO: Get interrupts going when/if needed */
 
     /* Restore all regs */
     ld x1,  8(sp)

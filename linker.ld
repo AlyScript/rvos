@@ -10,7 +10,7 @@ SECTIONS
     .sys :
     {
         /* Jump here first in supervisor mode. */
-        *(.text.sys)
+        *(.text.sys.start)
 
         . = ALIGN(4);
         __trap_start = .;
@@ -18,31 +18,52 @@ SECTIONS
         *(.text.trap)
         __trap_end   = .;
 
-        . = ALIGN(16);
+        *(.text.sys)
+
+        KEEP(*(.data.sys))
 
         /* Machine Stack */
+        . = ALIGN(16);
         __mstack_end   = .;
         . += 10K;
         __mstack_start = .;
     }
 
-    /* Now everything in application memory. */
-    .usr :
+    /* 1GB away from Kernel. Will start mapping into here. */
+    /* . = 0x00000000B0200000;  */
+
+    .text : 
     {
         *(.text)
+    }
 
+    .rodata :
+    {
+        *(.rodata)
+    }
+
+    .bss : 
+    {
         __bss_start = .;
         *(.bss)
         __bss_end = .;
+    }
 
+    .data :
+    {
         *(.data)
+        *(.sdata)
+    }
 
+    .mem :
+    {
         __heap_start = .;
-        . += 2M;
+        . += 120M;
         __heap_end = .;
 
+        . = ALIGN(16);
         __ustack_end = .;
-        . += 2M;
+        . += 1M;
         __ustack_start = .;
     }
 }

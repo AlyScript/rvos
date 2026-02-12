@@ -1,0 +1,4 @@
+build/
+.cache/
+notes.txt
+.gdb_history

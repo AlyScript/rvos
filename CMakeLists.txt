@@ -12,32 +12,34 @@ set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(RV_ARCH_FLAGS -march=rv64imac_zicsr -mabi=lp64)
 
-add_executable(kernel.bin
+add_executable(
+    kernel.bin
     ${SRC_DIR}/kernel/start.S
     ${SRC_DIR}/kernel/usr_lib.c
     ${SRC_DIR}/kernel/ecall.S
     ${SRC_DIR}/kernel/sbi.c
     ${SRC_DIR}/kernel/trap.c
+    ${SRC_DIR}/kernel/page.c
     ${SRC_DIR}/main.c
 )
 
 target_include_directories(kernel.bin PRIVATE ${INCLUDE_DIR})
 
-target_compile_options(kernel.bin PRIVATE
-    ${RV_ARCH_FLAGS}
-    -g
-    -fno-builtin
-    -fno-exceptions
-    -Wall
-    -Wextra
+target_compile_options(
+    kernel.bin
+    PRIVATE
+        ${RV_ARCH_FLAGS}
+        -g
+        -fno-builtin
+        -fno-exceptions
+        -Wall
+        -Wextra
+        -mcmodel=large
 )
 
-target_link_options(kernel.bin PRIVATE
-    ${RV_ARCH_FLAGS}
-    -T${LINKER_SCRIPT}
-    -nostdlib
-    -nostartfiles
-    -static
+target_link_options(
+    kernel.bin
+    PRIVATE ${RV_ARCH_FLAGS} -T${LINKER_SCRIPT} -nostdlib -nostartfiles -static
 )
 
 target_link_libraries(kernel.bin PRIVATE gcc)
