@@ -5,10 +5,16 @@ char page_list[NO_FRAMES] __attribute__((section(".data.sys")));
 uint64_t *page_frames[NO_FRAMES] __attribute__((section(".data.sys")));
 
 /* Virtual Memory */
-uint64_t root_level_table[PAGE_SIZE_BYTES / 8] __attribute__((aligned(PAGE_SIZE_BYTES)));
+uint64_t root_level_table[PAGE_SIZE_BYTES / 8] __attribute__((aligned(PAGE_SIZE_BYTES), section(".data.sys")));
 
 const uint64_t RWX_BITMASK = 0xFFFFFFFFFFFFFFF1;
 // const uint64_t VALID_BITMASK = 0xFFFFFFFFFFFFFFFE;
+
+/* Create a page table entry for a physical frame and return a virtual address corresponding to it. */
+__attribute__((section(".text.sys"))) pte_t *create_pte(uint64_t phys_frame_no) { unsigned int level = 2; }
+
+/* Walk the virtual page table. If an entry */
+__attribute__((section(".text.sys"))) void pagedir_walk() {}
 
 __attribute__((section(".text.sys"))) void setup_page_table() {
   for (unsigned int i = 0; i < sizeof(root_level_table) / sizeof(uint64_t); ++i) {
