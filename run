@@ -2,9 +2,10 @@
 
 KERNEL="build/kernel.bin"
 MACHINE="virt"
+MEMORY=8G
 CPUS=1
 
-QEMU_CMD="qemu-system-riscv64 -M $MACHINE -display none -serial stdio -kernel $KERNEL -smp $CPUS"
+QEMU_CMD="qemu-system-riscv64 -M $MACHINE -m $MEMORY -display none -serial stdio -kernel $KERNEL -smp $CPUS"
 
 # Debug flags: 
 # -s: shorthand for -gdb tcp::1234

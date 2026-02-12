@@ -29,6 +29,7 @@ target_compile_options(
     kernel.bin
     PRIVATE
         ${RV_ARCH_FLAGS}
+        -O0
         -g
         -fno-builtin
         -fno-exceptions

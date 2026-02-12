@@ -15,6 +15,8 @@ _start:
     /* Set the (user) stack pointer to the (user) stack address */
     la sp, __ustack_start       
 
+    call populate_page_tables
+
     /* After `sret`, we jump to the address in SEPC. So load main() into it. */
     la ra, main
     csrw sepc, ra
