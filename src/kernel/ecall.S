@@ -7,7 +7,11 @@ __shandler:
     /* Save all state. */ 
     addi sp, sp, -256
     sd x1,  8(sp)    
-    # x2 (sp) is special, we'll handle it later
+
+    /* User sp is in sscratch */
+    csrr x1, sscratch 
+    sd x1, 16(sp)
+
     sd x3,  24(sp)   
     sd x4,  32(sp)   
     sd x5,  40(sp)   
@@ -38,13 +42,19 @@ __shandler:
     sd x30, 240(sp)  
     sd x31, 248(sp)  
 
-    mv a0, sp
+    mv a0, sp  /* Pass pointer to current stack frame */
     call handle_syscall
 
     /* TODO: Get interrupts going when/if needed */
 
     /* Restore all regs */
     ld x1,  8(sp)
+
+    /* Restore saved user sp. Not strictly necessary for now, but might prove to be useful at some point */
+    /* i.e. if we want to change users sp in a function call... */
+    ld x3, 16(sp)
+    csrw sscratch, x3
+
     ld x3,  24(sp)
     ld x4,  32(sp)
     ld x5,  40(sp)
@@ -75,11 +85,11 @@ __shandler:
     ld x30, 240(sp)
     ld x31, 248(sp)
 
-    /* ccall points to itself, so need to move pc forward by 4 */
+    /* get stuck in an infinite loop if we don't do this */
     csrrw t0, sepc, t0
     addi t0, t0, 4                       
     csrrw t0, sepc, t0
 
     addi sp, sp, 256
-    csrrw sp, sscratch, sp
+    csrrw sp, sscratch, sp /* Restore user sp */
     sret
