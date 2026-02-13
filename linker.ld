@@ -27,6 +27,9 @@ SECTIONS
         __mstack_end   = .;
         . += 10K;
         __mstack_start = .;
+
+        . = ALIGN(4K);
+        __root_pte     = .;
     }
 
     /* 1GB away from Kernel. Will start mapping into here. */
