@@ -1,21 +1,3 @@
-// .section .data.sys
-// .global __itable
-// __itable:
-//     .dword handle_reserved           /* 0  */
-//     .dword handle_s_soft_int         /* 1  */
-//     .dword handle_reserved           /* 2  */
-//     .dword handle_m_soft_int         /* 3  */
-//     .dword handle_reserved           /* 4  */
-//     .dword handle_s_timer_int        /* 5  */
-//     .dword handle_reserved           /* 6  */
-//     .dword handle_m_timer_int        /* 7  */
-//     .dword handle_reserved           /* 8  */
-//     .dword handle_s_ext_int          /* 9  */
-//     .dword handle_reserved           /* 10 */
-//     .dword handle_m_ext_int          /* 11 */
-//     .dword handle_reserved           /* 12 */
-//     .dword handle_counter_ovf        /* 13 */
-
 #include <interrupt.h>
 
 void __attribute__((section(".text.trap"), weak)) handle_s_soft_int(pt_regs *regs) { handle_reserved(regs); }

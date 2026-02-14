@@ -1,27 +1,3 @@
-// .section .data.sys
-// .global __etable
-// __etable:
-//     .dword handle_insn_misaligned    /* 0  */
-//     .dword handle_insn_fault         /* 1  */
-//     .dword handle_illegal_insn       /* 2  */
-//     .dword handle_breakpoint         /* 3  */
-//     .dword handle_load_misaligned    /* 4  */
-//     .dword handle_load_fault         /* 5  */
-//     .dword handle_store_misaligned   /* 6  */
-//     .dword handle_store_fault        /* 7  */
-//     .dword handle_ecall_u            /* 8  */
-//     .dword handle_ecall_s            /* 9  */
-//     .dword handle_reserved           /* 10 */
-//     .dword handle_ecall_m            /* 11 */
-//     .dword handle_insn_page_fault    /* 12 */
-//     .dword handle_load_page_fault    /* 13 */
-//     .dword handle_reserved           /* 14 */
-//     .dword handle_store_page_fault   /* 15 */
-//     .dword handle_double_trap        /* 16 */
-//     .dword handle_reserved           /* 17 */
-//     .dword handle_sw_check           /* 18 */
-//     .dword handle_hw_error           /* 19 */
-
 #include <ecall.h>
 #include <sbi.h>
 
@@ -36,7 +12,7 @@ void __attribute__((section(".text.trap"), weak)) handle_store_fault(pt_regs *re
 void __attribute__((section(".text.trap"), weak)) handle_ecall_u(pt_regs *regs)         { handle_reserved(regs); }
 void __attribute__((section(".text.trap"), weak)) handle_ecall_s(pt_regs *regs)         { handle_reserved(regs); }
 void __attribute__((section(".text.trap"), weak)) handle_ecall_m(pt_regs *regs)         { handle_reserved(regs); }
-void __attribute__((section(".text.trap"), weak)) handle_insn_page_fault(pt_regs *regs) {
+void __attribute__((section(".text.trap"))) handle_insn_page_fault(pt_regs *regs) {
 
 }
 void __attribute__((section(".text.trap"), weak)) handle_load_page_fault(pt_regs *regs) { handle_reserved(regs); }
