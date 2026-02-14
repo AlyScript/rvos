@@ -15,10 +15,12 @@ set(RV_ARCH_FLAGS -march=rv64imac_zicsr -mabi=lp64)
 add_executable(
     kernel.bin
     ${SRC_DIR}/kernel/start.S
+    ${SRC_DIR}/kernel/trap.S
     ${SRC_DIR}/kernel/usr_lib.c
-    ${SRC_DIR}/kernel/ecall.S
     ${SRC_DIR}/kernel/sbi.c
     ${SRC_DIR}/kernel/trap.c
+    ${SRC_DIR}/kernel/interrupt.c
+    ${SRC_DIR}/kernel/ecall.c
     ${SRC_DIR}/kernel/page.c
     ${SRC_DIR}/main.c
 )

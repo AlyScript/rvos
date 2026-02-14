@@ -20,7 +20,7 @@ SECTIONS
 
         *(.text.sys)
 
-        KEEP(*(.data.sys))
+        *(.data.sys)
 
         /* Machine Stack */
         . = ALIGN(16);

@@ -1,6 +1,12 @@
+/* Function pointers to exception and interrupt handlers */
+.section .data.sys
+.align 3
+__table:
+    .dword __etable
+    .dword __itable
+
 .section .text.trap.entry
 __shandler:
-
     /* Swap to supervisor stack. */ 
     csrrw sp, sscratch, sp
     
@@ -42,10 +48,24 @@ __shandler:
     sd x30, 240(sp)  
     sd x31, 248(sp)  
 
-    mv a0, sp  /* Pass pointer to current stack frame */
-    call handle_syscall
+    /* Multiplexing for right handler (interrupt or exception) */
+    csrr t0, scause
+    srli t0, t0, 63                       /* 1 if interrupt, else 0 */
+    slli t0, t0, 3                        /* ecall handler is offset 0, interrupt offset 1. Addresses are 8 bytes. */
+    la t2, __table      
+    add t2, t2, t0                        /* Offset into the correct table */
 
-    /* TODO: Get interrupts going when/if needed */
+    ld t0, 0(t2)                          /* Dereference t2 get address of table */
+
+    csrr t2, scause                       
+    slli t2, t2, 1                        /* Get rid of MSB */
+    srli t2, t2, 1                        /* -------------- */
+    slli t2, t2, 3                        /* Instructions are 8 bytes! */
+    add t2, t0, t2                        /* Get pointer to right handler */
+    ld t0, 0(t2)                          /* Dereference pointer to get address of handler */
+
+    mv a0, sp                             /* Pass pointer to current stack frame as first argument */
+    jalr t0                               /* Jump to handler */
 
     /* Restore all regs */
     ld x1,  8(sp)
