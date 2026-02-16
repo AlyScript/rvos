@@ -1,3 +1,5 @@
+#pragma once
+
 #include <trap.h>
 
 const handler_t __itable[];

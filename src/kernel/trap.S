@@ -60,7 +60,7 @@ __shandler:
     csrr t2, scause                       
     slli t2, t2, 1                        /* Get rid of MSB */
     srli t2, t2, 1                        /* -------------- */
-    slli t2, t2, 3                        /* Instructions are 8 bytes! */
+    slli t2, t2, 3                        /* Multiply by 8 to get actual offset from __etable */
     add t2, t0, t2                        /* Get pointer to right handler */
     ld t0, 0(t2)                          /* Dereference pointer to get address of handler */
 
@@ -106,9 +106,9 @@ __shandler:
     ld x31, 248(sp)
 
     /* get stuck in an infinite loop if we don't do this */
-    csrrw t0, sepc, t0
-    addi t0, t0, 4                       
-    csrrw t0, sepc, t0
+    # csrrw t0, sepc, t0
+    # addi t0, t0, 4                       
+    # csrrw t0, sepc, t0
 
     addi sp, sp, 256
     csrrw sp, sscratch, sp /* Restore user sp */

@@ -34,6 +34,7 @@ SECTIONS
 
     /* 1GB away from Kernel. Will start mapping into here. */
     /* . = 0x00000000B0200000;  */
+    . = 0xC0000000;
 
     .text : 
     {

@@ -1,7 +1,34 @@
+#pragma once
+
 #include <stdint.h>
 
-#define NO_FRAMES 1048576
-#define PAGE_SIZE_BYTES 4096
+#define PTE_V     0x1
+#define PTE_R     0x2
+#define PTE_W     0x4
+#define PTE_X     0x8
+#define PTE_U     0x10
+#define PTE_NODE  ~0xE
 
-int populate_page_list(uint64_t startAddr);
+#define GB        (1ULL << 30)
+
+extern uint64_t MEM_LIMIT; /* 5GB */
+
+typedef struct {
+  uint64_t ppn;
+  unsigned char flags; // D A G U X W R V
+} pte;
+
+typedef struct pf {
+  struct pf *next;
+} pf;
+
+extern uint64_t __root_pte[512];
+extern pf *free_list_head;
+
+// uint64_t* pte_to_ptr(uint64_t pte);
+static inline void flush_tlb_global();
 void *alloc_page();
+int free_page(void *page);
+void pm_init(uint64_t mem_start, uint64_t mem_end);
+void page_init();
+void map_vaddr(uint64_t vaddr, uint64_t paddr, unsigned char flags);
