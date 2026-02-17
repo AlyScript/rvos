@@ -46,14 +46,18 @@ void __attribute__((section(".text.trap"))) handle_insn_page_fault(pt_regs *regs
   spp ^= 1;                               // Can check if spp < U bit in the PTE to see if not allowed
 
   // First check if due to being invalid
-  uint64_t entry = __root_pte[stval >> 30];
+  uint64_t entry = __root_pte[sepc >> 30];
   map_vaddr(stval, sepc, PTE_U | PTE_V | PTE_R | PTE_X | (spp << 4));
   // flush_tlb_global();
 }
 
-void __attribute__((section(".text.trap"))) handle_load_page_fault(pt_regs *regs) {}
+void __attribute__((section(".text.trap"))) handle_load_page_fault(pt_regs *regs) {
+    handle_insn_page_fault(regs);
+}
 
-void __attribute__((section(".text.trap"))) handle_store_page_fault(pt_regs *regs) {}
+void __attribute__((section(".text.trap"))) handle_store_page_fault(pt_regs *regs) {
+    handle_insn_page_fault(regs);
+}
 
 void __attribute__((section(".text.trap"), weak)) handle_double_trap(pt_regs *regs) { handle_reserved(regs); }
 void __attribute__((section(".text.trap"), weak)) handle_sw_check(pt_regs *regs) { handle_reserved(regs); }
