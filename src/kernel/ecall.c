@@ -2,6 +2,10 @@
 #include <page.h>
 #include <sbi.h>
 
+__attribute__((section(".text.trap"))) static inline void w_sepc(uint64_t val) {
+  asm volatile("csrw sepc, %0" : : "r"(val));
+}
+
 __attribute__((section(".text.trap"))) static inline uint64_t r_sepc() {
   uint64_t x;
   asm volatile("csrr %0, sepc" : "=r"(x));
@@ -29,7 +33,13 @@ void __attribute__((section(".text.trap"), weak)) handle_load_misaligned(pt_regs
 void __attribute__((section(".text.trap"), weak)) handle_load_fault(pt_regs *regs) { handle_reserved(regs); }
 void __attribute__((section(".text.trap"), weak)) handle_store_misaligned(pt_regs *regs) { handle_reserved(regs); }
 void __attribute__((section(".text.trap"), weak)) handle_store_fault(pt_regs *regs) { handle_reserved(regs); }
-void __attribute__((section(".text.trap"), weak)) handle_ecall_u(pt_regs *regs) { handle_reserved(regs); }
+
+void __attribute__((section(".text.trap"))) handle_ecall_u(pt_regs *regs) { 
+    handle_syscall(regs);
+    uint64_t sepc = r_sepc();
+    w_sepc(sepc + 4);
+}
+
 void __attribute__((section(".text.trap"), weak)) handle_ecall_s(pt_regs *regs) { handle_reserved(regs); }
 void __attribute__((section(".text.trap"), weak)) handle_ecall_m(pt_regs *regs) { handle_reserved(regs); }
 

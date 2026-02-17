@@ -1,3 +1,4 @@
+__attribute__((section(".text.sys")))
 void sbi_putchar(const char c) {
   register int a0 asm("a0") = (int)(c);
   register int a6 asm("a6") = 0;

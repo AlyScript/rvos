@@ -1,14 +1,15 @@
 #include "usr_lib.h"
 // #include <shell.h>
 
-__attribute__((section(".text"))) int main() {
+int main() {
   // shell();
-  char *str = "\nHello Kind sir\n";
-  char *p = str;
-  while (*p != 0) {
-    putchar(*p);
-    ++p;
-  }
+  putchar('\n');
+  putchar('H');
+  putchar('e');
+  putchar('l');
+  putchar('l');
+  putchar('o');
+  putchar('\n');
   while (1)
     ;
 }

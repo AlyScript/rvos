@@ -38,3 +38,4 @@ typedef struct pt_regs {
 typedef void (*handler_t)(pt_regs *regs);
 
 void handle_reserved(pt_regs *regs);
+void handle_syscall(pt_regs *regs);
