@@ -1,11 +1,10 @@
 /* Function pointers to exception and interrupt handlers */
-.section .data.sys
 .align 3
 __table:
     .dword __etable
     .dword __itable
 
-.section .text.trap.entry
+.global __shandler
 __shandler:
     /* Swap to supervisor stack. */ 
     csrrw sp, sscratch, sp

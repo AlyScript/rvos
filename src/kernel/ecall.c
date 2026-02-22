@@ -2,53 +2,53 @@
 #include <page.h>
 #include <sbi.h>
 
-__attribute__((section(".text.trap"))) static inline void w_sepc(uint64_t val) {
+static inline void w_sepc(uint64_t val) {
   asm volatile("csrw sepc, %0" : : "r"(val));
 }
 
-__attribute__((section(".text.trap"))) static inline uint64_t r_sepc() {
+static inline uint64_t r_sepc() {
   uint64_t x;
   asm volatile("csrr %0, sepc" : "=r"(x));
   return x;
 }
 
-__attribute__((section(".text.trap"))) static inline uint64_t r_stval() {
+static inline uint64_t r_stval() {
   uint64_t x;
   asm volatile("csrr %0, stval" : "=r"(x));
   return x;
 }
 
-__attribute__((section(".text.trap"))) static inline uint64_t r_sstatus() {
+static inline uint64_t r_sstatus() {
   uint64_t x;
   asm volatile("csrr %0, sstatus" : "=r"(x));
   return x;
 }
 
 
-void __attribute__((section(".text.trap"), weak)) handle_insn_misaligned(pt_regs *regs) { handle_reserved(regs); }
-void __attribute__((section(".text.trap"), weak)) handle_insn_fault(pt_regs *regs) { handle_reserved(regs); }
-void __attribute__((section(".text.trap"), weak)) handle_illegal_insn(pt_regs *regs) { handle_reserved(regs); }
-void __attribute__((section(".text.trap"), weak)) handle_breakpoint(pt_regs *regs) { handle_reserved(regs); }
-void __attribute__((section(".text.trap"), weak)) handle_load_misaligned(pt_regs *regs) { handle_reserved(regs); }
-void __attribute__((section(".text.trap"), weak)) handle_load_fault(pt_regs *regs) { handle_reserved(regs); }
-void __attribute__((section(".text.trap"), weak)) handle_store_misaligned(pt_regs *regs) { handle_reserved(regs); }
-void __attribute__((section(".text.trap"), weak)) handle_store_fault(pt_regs *regs) { handle_reserved(regs); }
+void handle_insn_misaligned(pt_regs *regs) { handle_reserved(regs); }
+void handle_insn_fault(pt_regs *regs) { handle_reserved(regs); }
+void handle_illegal_insn(pt_regs *regs) { handle_reserved(regs); }
+void handle_breakpoint(pt_regs *regs) { handle_reserved(regs); }
+void handle_load_misaligned(pt_regs *regs) { handle_reserved(regs); }
+void handle_load_fault(pt_regs *regs) { handle_reserved(regs); }
+void handle_store_misaligned(pt_regs *regs) { handle_reserved(regs); }
+void handle_store_fault(pt_regs *regs) { handle_reserved(regs); }
 
-void __attribute__((section(".text.trap"))) handle_ecall_u(pt_regs *regs) { 
+void handle_ecall_u(pt_regs *regs) { 
     handle_syscall(regs);
     uint64_t sepc = r_sepc();
     w_sepc(sepc + 4);
 }
 
-void __attribute__((section(".text.trap"), weak)) handle_ecall_s(pt_regs *regs) { handle_reserved(regs); }
-void __attribute__((section(".text.trap"), weak)) handle_ecall_m(pt_regs *regs) { handle_reserved(regs); }
+void handle_ecall_s(pt_regs *regs) { handle_reserved(regs); }
+void handle_ecall_m(pt_regs *regs) { handle_reserved(regs); }
 
 /* Page fault handlers. There are a number of cases to handle here. */
 /* If a fault occurred because a page was invalid, i.e. V == 0 and ONLY because of this, then we need to allocate one.
  */
 /* In any case, the first thing to do is check the address that caused the fault. */
 /* From there, we can identify the PTE that caused the trap and then handle the fault accordingly. */
-void __attribute__((section(".text.trap"))) handle_insn_page_fault(pt_regs *regs) {
+void handle_insn_page_fault(pt_regs *regs) {
   uint64_t sepc = r_sepc();
   uint64_t stval = r_stval();
   uint64_t sstatus = r_sstatus();
@@ -61,19 +61,18 @@ void __attribute__((section(".text.trap"))) handle_insn_page_fault(pt_regs *regs
   // flush_tlb_global();
 }
 
-void __attribute__((section(".text.trap"))) handle_load_page_fault(pt_regs *regs) {
+void handle_load_page_fault(pt_regs *regs) {
     handle_insn_page_fault(regs);
 }
 
-void __attribute__((section(".text.trap"))) handle_store_page_fault(pt_regs *regs) {
+void handle_store_page_fault(pt_regs *regs) {
     handle_insn_page_fault(regs);
 }
 
-void __attribute__((section(".text.trap"), weak)) handle_double_trap(pt_regs *regs) { handle_reserved(regs); }
-void __attribute__((section(".text.trap"), weak)) handle_sw_check(pt_regs *regs) { handle_reserved(regs); }
-void __attribute__((section(".text.trap"), weak)) handle_hw_error(pt_regs *regs) { handle_reserved(regs); }
+void handle_double_trap(pt_regs *regs) { handle_reserved(regs); }
+void handle_sw_check(pt_regs *regs) { handle_reserved(regs); }
+void handle_hw_error(pt_regs *regs) { handle_reserved(regs); }
 
-__attribute__((section(".data.sys")))
 const handler_t __etable[] = {[0] = handle_insn_misaligned,   [1] = handle_insn_fault,       [2] = handle_illegal_insn,
                               [3] = handle_breakpoint,        [4] = handle_load_misaligned,  [5] = handle_load_fault,
                               [6] = handle_store_misaligned,  [7] = handle_store_fault,      [8] = handle_ecall_u,

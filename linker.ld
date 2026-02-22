@@ -7,68 +7,52 @@ SECTIONS
 {
     . = 0x0000000080200000; 
     
-    .sys :
+    .text : ALIGN(4K)
     {
-        /* Jump here first in supervisor mode. */
-        *(.text.sys.start)
-
-        . = ALIGN(4);
-        __trap_start = .;
-        *(.text.trap.entry)
-        *(.text.trap)
-        __trap_end   = .;
-
-        *(.text.sys)
-
-        *(.data.sys)
-
-        /* Machine Stack */
-        . = ALIGN(16);
-        __mstack_end   = .;
-        . += 10K;
-        __mstack_start = .;
-
-        . = ALIGN(4K);
-        __root_pte     = .;
-    }
-
-    /* 1GB away from Kernel. Will start mapping into here. */
-    /* . = 0x00000000B0200000;  */
-    . = 0xC0000000;
-
-    .text : 
-    {
+        *(.text.start)
         *(.text)
     }
 
-    .rodata :
+    .rodata : ALIGN(4K)
     {
         *(.rodata)
     }
 
-    .bss : 
+    .bss : ALIGN(4K)
     {
-        __bss_start = .;
+        /* __bss_start = .; */
         *(.bss)
-        __bss_end = .;
+        . = ALIGN(4K);
+        __root_pte     = .;
+        /* __bss_end = .; */
     }
 
-    .data :
+    .data : ALIGN(4K)
     {
         *(.data)
         *(.sdata)
     }
 
-    .mem :
+    .stack : ALIGN(16) 
     {
-        __heap_start = .;
-        . += 120M;
-        __heap_end = .;
+        /* Supervisor Stack */
+        . = ALIGN(16);
+        __mstack_end = .;
+        . += 16K;
+        __mstack_start = .;
 
+        /* User/Kernel Task Stack */
         . = ALIGN(16);
         __ustack_end = .;
         . += 1M;
         __ustack_start = .;
+    }
+
+    .heap : ALIGN(4K) 
+    {
+        __heap_start = .;
+        . += 120M; 
+        __heap_end = .;
     }
 }
 

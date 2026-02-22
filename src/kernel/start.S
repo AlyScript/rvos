@@ -1,7 +1,7 @@
 .equ SPP_BITMASK, 0x100          /* SSTATUS[8] bit for Supervisor Previous Privilege Mode */
 .equ SV39, 0x8000000000000000   
 
-.section .text.sys.start
+.section .text.start
 .global _start
 _start:
     li t0, SPP_BITMASK 
@@ -11,7 +11,7 @@ _start:
     la sp, __mstack_start
     csrw sscratch, sp           /* Better remember to swap this when we trap! */
 
-    la t0, __trap_start
+    la t0, __shandler
     csrw stvec, t0
 
     call page_init              /* Create an identity mapping for the first GiB of RAM */
@@ -21,6 +21,7 @@ _start:
     or t0, t0, t1
     csrw satp, t0               /* mode: Sv39, PPN: (__root_pte >> 12) */
     sfence.vma                  /* Global TLB flush */
+                                /* Map kernel into super high address now */
 
     /* Set the (user) stack pointer to the (user) stack address */
     la sp, __ustack_start       

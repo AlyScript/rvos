@@ -4,19 +4,19 @@
 
 extern uint64_t _start;
 
-__attribute__((section(".data.sys"))) uint64_t MEM_LIMIT = 5ULL * GB; /* 3GB */
-__attribute__((section(".data.sys"))) pf *free_list_head = 0;
+uint64_t MEM_LIMIT = 5ULL * GB; /* 3GB */
+pf *free_list_head = 0;
 
-__attribute__((section(".data.sys"))) uint64_t __root_pte[512] = {0};
+uint64_t __root_pte[512] = {0};
 
-__attribute__((section(".text.trap"))) static inline void flush_tlb_global() {
+static inline void flush_tlb_global() {
   // sfence.vma rs1, rs2
   // rs1 = 0: flush all addresses
   // rs2 = 0: flush all address space identifiers (ASIDs)
   asm volatile("sfence.vma zero, zero" : : : "memory");
 }
 
-__attribute__((section(".text.sys"))) void *memset(void *dest, const int val, size_t n) {
+void *memset(void *dest, const int val, size_t n) {
   for (size_t i = 0; i < n; i++) {
     ((char *)dest)[i] = val;
   }
@@ -24,7 +24,7 @@ __attribute__((section(".text.sys"))) void *memset(void *dest, const int val, si
 
 /* SATP: This register holds the physical page number (PPN) of the root page table, i.e., its supervisor physical
  * address divided by 4 KiB */
-uint64_t __attribute__((section(".text.sys"))) create_pte(uint64_t addr, unsigned char flags) {
+uint64_t create_pte(uint64_t addr, unsigned char flags) {
   if (addr & 0xFFF) {
     // Misaligned
     return 0;
@@ -36,14 +36,14 @@ uint64_t __attribute__((section(".text.sys"))) create_pte(uint64_t addr, unsigne
 }
 
 /* Finds a free page frame and returns a (page aligned) pointer to the beginning of it. */
-__attribute__((section(".text.sys"))) void *alloc_page() {
+void *alloc_page() {
     pf *node = free_list_head;
     free_list_head = node->next;
     return (void *) node;
 }
 
 /* Free a 4K aligned page */
-__attribute__((section(".text.sys"))) int free_page(void *page) {
+int free_page(void *page) {
     if (((uint64_t) page) & 0x7) {
         // Misaligned address.
         return -1;
@@ -56,7 +56,7 @@ __attribute__((section(".text.sys"))) int free_page(void *page) {
 }
 
 /* Populate free list */
-__attribute__((section(".text.sys"))) void pm_init(uint64_t mem_start, uint64_t mem_end) {
+void pm_init(uint64_t mem_start, uint64_t mem_end) {
     while (mem_start & 0x7) ++mem_start;                 /* Ensure 4K aligned */
     for (uint64_t addr = mem_start; addr < mem_end; addr += 4096) {
         free_page((void *) addr);
@@ -65,7 +65,7 @@ __attribute__((section(".text.sys"))) void pm_init(uint64_t mem_start, uint64_t 
 
 /* Create an identity mapping for the kernel. We're mapping 1GiB of Kernel RAM so we just do this as a direct gigapage
  * mapping. */
-__attribute__((section(".text.sys"))) void page_init() {
+void page_init() {
   uint64_t kernel_addr = (uint64_t)(&_start);
   uint64_t gigapage_base = kernel_addr & ~0x3FFFFFFF;    /* Must be gigabyte aligned, so zero out bottom 30 bits */
 
@@ -82,7 +82,7 @@ __attribute__((section(".text.sys"))) void page_init() {
 
 
 /* Create a mapping for a virtual address */
-__attribute__((section(".text.sys"))) void map_vaddr(uint64_t vaddr, uint64_t paddr, unsigned char flags) {
+void map_vaddr(uint64_t vaddr, uint64_t paddr, unsigned char flags) {
     uint64_t root_index = vaddr >> 30;
     flags |= 0x1; // All valid from here.
     if (!((__root_pte[root_index] & 1)) || (__root_pte[root_index] & 1) && (__root_pte[root_index] & ~PTE_NODE)) {
@@ -123,7 +123,7 @@ __attribute__((section(".text.sys"))) void map_vaddr(uint64_t vaddr, uint64_t pa
 // Source - https://stackoverflow.com/a/66809749
 // Posted by selbie, modified by community. See post 'Timeline' for change history
 // Retrieved 2026-02-12, License - CC BY-SA 4.0
-__attribute__((section(".text.sys"))) void *memcpy(void *dest, const void *src, size_t n) {
+void *memcpy(void *dest, const void *src, size_t n) {
   for (size_t i = 0; i < n; i++) {
     ((char *)dest)[i] = ((char *)src)[i];
   }
