@@ -58,12 +58,16 @@ int free_page(void *page) {
     return 0;
 }
 
-/* Populate free list */
+/* Populate free list and delete identity mapping. */
 void pm_init(uint64_t mem_start, uint64_t mem_end) {
     while (mem_start & 0x7) ++mem_start;                 /* Ensure 4K aligned */
     for (uint64_t addr = mem_start; addr < mem_end; addr += 4096) {
         free_page((void *) addr);
     }
+
+    /* Delete identity mapping */
+    uint64_t id_index = (PHY_BASE >> 30) & 0x1FF; 
+    __root_pte[id_index] = 0;
 }
 
 /* Create an identity mapping for the kernel. We're mapping 1GiB of Kernel RAM so we just do this as a direct gigapage mapping. */

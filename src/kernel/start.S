@@ -31,7 +31,8 @@ _start:
 
 __vaddr_jump:
 
-    /* TODO; Remove identity mapping */
+    /* Remove identity mapping */
+    call pm_init
 
     /* TODO; Change this */
     li t0, 0xFFFFFFC000000000
