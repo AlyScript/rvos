@@ -1,33 +1,45 @@
-.equ SPP_BITMASK, 0x100          /* SSTATUS[8] bit for Supervisor Previous Privilege Mode */
+.equ SPP_BITMASK, 0x100
 .equ SV39, 0x8000000000000000   
+.equ VIRT_OFFSET, 0xFFFFFFC000000000 /* Adjust if your offset is different */
 
 .section .text.start
 .global _start
 _start:
     li t0, SPP_BITMASK 
-    csrc sstatus, t0            /* This needs to be 0 so that we jump to U-mode after sret as per the spec. */
-
+    csrc sstatus, t0            
 
     la sp, __mstack_start
-    csrw sscratch, sp           /* Better remember to swap this when we trap! */
+    csrw sscratch, sp           
 
     la t0, __shandler
     csrw stvec, t0
 
-    call page_init              /* Create an identity mapping for the first GiB of RAM */
-    la t0, __root_pte           /* A (4K page aligned) pointer to the level 2 table */
-    srli t0, t0, 12             /* MMU will take the address in SATP and shift it left by 12 bits. So reverse this. */
-    li t1, SV39                 /* MODE: Sv39 */
+    call page_init              
+    la t0, __root_pte           
+    srli t0, t0, 12             
+    li t1, SV39                 
     or t0, t0, t1
-    csrw satp, t0               /* mode: Sv39, PPN: (__root_pte >> 12) */
-    sfence.vma                  /* Global TLB flush */
-                                /* Map kernel into super high address now */
+    csrw satp, t0               
+    sfence.vma                  
 
-    /* Set the (user) stack pointer to the (user) stack address */
-    la sp, __ustack_start       
+    /* Need a jump to be in virtual address now. */
+    /* __vaddr_jump will be at a high address. */
+    la t0, __vaddr_jump
+    li t1, VIRT_OFFSET
+    add t0, t0, t1
+    jr t0
 
-    /* After `sret`, we jump to the address in SEPC. So load main() into it. */
+__vaddr_jump:
+
+    /* TODO; Remove identity mapping */
+
+    /* TODO; Change this */
+    li t0, 0xFFFFFFC000000000
+    add sp, sp, t0
+
     la ra, main
+    li t0, 0xFFFFFFC000000000
+    add ra, ra, t0
     csrw sepc, ra
 
     sret

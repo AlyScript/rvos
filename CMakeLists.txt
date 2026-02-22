@@ -16,7 +16,7 @@ add_executable(
     kernel.bin
     ${SRC_DIR}/kernel/start.S
     ${SRC_DIR}/kernel/trap.S
-    ${SRC_DIR}/kernel/usr_lib.c
+    ${SRC_DIR}/usr_lib.c
     ${SRC_DIR}/kernel/sbi.c
     ${SRC_DIR}/kernel/trap.c
     ${SRC_DIR}/kernel/interrupt.c
@@ -37,7 +37,7 @@ target_compile_options(
         -fno-exceptions
         -Wall
         -Wextra
-        -mcmodel=large
+        -mcmodel=medany
 )
 
 target_link_options(

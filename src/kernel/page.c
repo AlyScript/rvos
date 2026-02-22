@@ -1,5 +1,8 @@
 #include <page.h>
 
+#define VIRT_OFFSET 0xFFFFFFC000000000ULL
+#define PHY_BASE    0x0000000080000000ULL
+
 #define pte_to_ptr(pte) ((uint64_t *)((((pte) >> 10) & 0x3FFFFFFFFFFULL) << 12)) /* Mask 44 Bits (PFN) */
 
 extern uint64_t _start;
@@ -7,7 +10,7 @@ extern uint64_t _start;
 uint64_t MEM_LIMIT = 5ULL * GB; /* 3GB */
 pf *free_list_head = 0;
 
-uint64_t __root_pte[512] = {0};
+__attribute__((aligned(4096))) uint64_t __root_pte[512] = {0};
 
 static inline void flush_tlb_global() {
   // sfence.vma rs1, rs2
@@ -63,23 +66,19 @@ void pm_init(uint64_t mem_start, uint64_t mem_end) {
     }
 }
 
-/* Create an identity mapping for the kernel. We're mapping 1GiB of Kernel RAM so we just do this as a direct gigapage
- * mapping. */
+/* Create an identity mapping for the kernel. We're mapping 1GiB of Kernel RAM so we just do this as a direct gigapage mapping. */
+/* Also create a higher half mapping. */
+/* Virtual addresses are 39 bits, so need to shift right by 30 bits and mask the upper 9 bits (0x1FF) */
 void page_init() {
-  uint64_t kernel_addr = (uint64_t)(&_start);
-  uint64_t gigapage_base = kernel_addr & ~0x3FFFFFFF;    /* Must be gigabyte aligned, so zero out bottom 30 bits */
+    /* Identity mapping */
+    uint64_t id_index = (PHY_BASE >> 30) & 0x1FF; 
+    __root_pte[id_index] = create_pte(PHY_BASE, PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D);
 
-  for (int i = 0; i < 5; ++i) {
-       uint64_t addr = gigapage_base + (i * GB);
-       uint64_t entry = create_pte(addr, 0xF);      /* Flags: XWRV. /* Maybe come back and change clear W for instructions and X for data> */
-       __root_pte[addr >> 30] = entry;                           /* MMU will take the upper 9 bits of the 39 bit address and use it as an index into the root table */
-  }
-                                                                        /* The PTE for our identity mapping needs to be there when it does. */
-
-  const uint64_t MEM_START = kernel_addr + GB;
-  pm_init(MEM_START, MEM_LIMIT);
+    /* Higher half mapping */
+    uint64_t high_vaddr = VIRT_OFFSET + PHY_BASE;
+    uint64_t high_index = (high_vaddr >> 30) & 0x1FF;
+    __root_pte[high_index] = create_pte(PHY_BASE, PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D);
 }
-
 
 /* Create a mapping for a virtual address */
 void map_vaddr(uint64_t vaddr, uint64_t paddr, unsigned char flags) {
