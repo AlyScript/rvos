@@ -32,5 +32,6 @@ static inline void flush_tlb_global();
 void *alloc_page();
 int free_page(void *page);
 void pm_init(uint64_t mem_start, uint64_t mem_end);
+// void init_page_allocator();
 void page_init();
 void map_vaddr(uint64_t vaddr, uint64_t paddr, unsigned char flags);

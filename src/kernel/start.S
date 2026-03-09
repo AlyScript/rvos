@@ -1,10 +1,14 @@
 .equ SPP_BITMASK, 0x100
 .equ SV39, 0x8000000000000000   
-.equ VIRT_OFFSET, 0xFFFFFFC000000000 /* Adjust if your offset is different */
+.equ VIRT_OFFSET, 0xFFFFFFC000000000 
 
 .section .text.start
 .global _start
 _start:
+    mv s0, a0   /* hartid */
+    mv s1, a1   /* device tree blob address in memory */
+                /* see https://github.com/riscv-software-src/opensbi/blob/master/docs/firmware/fw.md */
+
     li t0, SPP_BITMASK 
     csrc sstatus, t0            
 
@@ -34,8 +38,12 @@ __vaddr_jump:
     /* Remove identity mapping */
     call pm_init
 
+    mv a0, s0
+    mv a1, s1
+    call kmain
+
     /* Call init */
-    la ra, init
+    /* la ra, init */
     csrw sepc, ra
 
     sret
