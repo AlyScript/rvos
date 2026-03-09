@@ -15,6 +15,7 @@ set(RV_ARCH_FLAGS -march=rv64imac_zicsr -mabi=lp64)
 add_executable(
     kernel.bin
     ${SRC_DIR}/kernel/start.S
+    ${SRC_DIR}/kernel/kmain.c
     ${SRC_DIR}/kernel/trap.S
     ${SRC_DIR}/kernel/sbi.c
     ${SRC_DIR}/kernel/trap.c
