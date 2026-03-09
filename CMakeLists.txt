@@ -16,13 +16,11 @@ add_executable(
     kernel.bin
     ${SRC_DIR}/kernel/start.S
     ${SRC_DIR}/kernel/trap.S
-    ${SRC_DIR}/usr_lib.c
     ${SRC_DIR}/kernel/sbi.c
     ${SRC_DIR}/kernel/trap.c
     ${SRC_DIR}/kernel/interrupt.c
     ${SRC_DIR}/kernel/ecall.c
     ${SRC_DIR}/kernel/page.c
-    ${SRC_DIR}/main.c
 )
 
 target_include_directories(kernel.bin PRIVATE ${INCLUDE_DIR})

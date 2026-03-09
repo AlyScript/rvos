@@ -34,13 +34,8 @@ __vaddr_jump:
     /* Remove identity mapping */
     call pm_init
 
-    /* TODO; Change this */
-    li t0, 0xFFFFFFC000000000
-    add sp, sp, t0
-
-    la ra, main
-    li t0, 0xFFFFFFC000000000
-    add ra, ra, t0
+    /* Call init */
+    la ra, init
     csrw sepc, ra
 
     sret
