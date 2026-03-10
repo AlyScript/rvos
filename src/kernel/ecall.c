@@ -56,7 +56,7 @@ void handle_insn_page_fault(pt_regs *regs) {
   spp ^= 1;                               // Can check if spp < U bit in the PTE to see if not allowed
 
   // First check if due to being invalid
-  uint64_t entry = __root_pte[sepc >> 30];
+  // uint64_t entry = __root_pte[(sepc >> 30) & 0x1FF];
   map_vaddr(stval, sepc, PTE_U | PTE_V | PTE_R | PTE_X | (spp << 4));
   // flush_tlb_global();
 }

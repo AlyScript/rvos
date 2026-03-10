@@ -2,16 +2,25 @@
 
 #include <stdint.h>
 
-#define PTE_V     0x1
-#define PTE_A     (1 << 6)
-#define PTE_D     (1 << 7)
-#define PTE_R     0x2
-#define PTE_W     0x4
-#define PTE_X     0x8
-#define PTE_U     0x10
-#define PTE_NODE  ~0xE
+#define PTE_V           0x1
+#define PTE_A           (1 << 6)
+#define PTE_D           (1 << 7)
+#define PTE_R           0x2
+#define PTE_W           0x4
+#define PTE_X           0x8
+#define PTE_U           0x10
+#define PTE_NODE        ~0xE
 
-#define GB        (1ULL << 30)
+#define GB              (1ULL << 30)
+
+#define VIRT_OFFSET     0xFFFFFFC000000000ULL
+#define PHY_BASE        0x0000000080000000ULL
+
+#define pte_to_ptr(pte) ((uint64_t *)((((pte) >> 10) & 0x3FFFFFFFFFFULL) << 12)) /* Mask 44 Bits (PFN) */
+
+/* Virtual to physical address and vice versa */
+#define __va(x)         (x + VIRT_OFFSET)
+#define __pa(x)         (x - VIRT_OFFSET)
 
 extern uint64_t MEM_LIMIT; /* 5GB */
 

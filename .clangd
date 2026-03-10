@@ -1,0 +1,15 @@
+CompileFlags:
+  # 1. Strip out any C++ flags inherited from your home directory
+  Remove:
+    - "-xc++"
+    - "-std=c++*"
+    - "-stdlib=*"
+
+  # 2. Force it to be treated as C, and add bare-metal flags
+  Add:
+    - "-xc"
+    - "-std=c11"          # Or -std=gnu99, depending on your kernel
+    - "-ffreestanding"
+    - "-nostdlib"
+    - "-m32"              # Assuming 32-bit x86. Change to -m64 if 64-bit.
+    - "-fno-builtin"

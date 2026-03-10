@@ -1,9 +1,5 @@
 #include <page.h>
 
-#define VIRT_OFFSET 0xFFFFFFC000000000ULL
-#define PHY_BASE 0x0000000080000000ULL
-
-#define pte_to_ptr(pte) ((uint64_t *)((((pte) >> 10) & 0x3FFFFFFFFFFULL) << 12)) /* Mask 44 Bits (PFN) */
 
 extern uint64_t _start;
 
@@ -39,32 +35,38 @@ uint64_t create_pte(uint64_t addr, unsigned char flags) {
 }
 
 /* Finds a free page frame and returns a (page aligned) pointer to the beginning of it. */
+/* IMPORTANT: The pointers in the free list are virtual addresses with VIRT_OFFSET added to the
+   underlying address. __pa(address) has to be used to return the actual address of the frame. */
 void *alloc_page() {
   pf *node = free_list_head;
   free_list_head = node->next;
-  return (void *)node;
+  return (void *)__pa(node);
 }
 
-/* Free a 4K aligned page */
+/* Free a 4K aligned page frame. */
+/* The pointer to the page is a physical address
+   so any operations on it (i.e. clearing it) require __va(page)! */
 int free_page(void *page) {
-  if (((uint64_t)page) & 0x7) {
+  if (((uint64_t)page) & 0xFFF) {
     // Misaligned address.
     return -1;
   }
 
-  pf *node = (pf *)page;
+  pf *node = (pf *)__va(page);
   node->next = free_list_head;
   free_list_head = node;
   return 0;
 }
 
-/* Populate free list and delete identity mapping. */
+/* Populate free list and delete identity mapping. 
+   `mem_start` is the *physical* address that corresponds to the end of the kernel's GiB.
+ */
 void pm_init(uint64_t mem_start, uint64_t mem_end) {
-  // while (mem_start & 0x7)
-  //   ++mem_start; /* Ensure 4K aligned */
-  // for (uint64_t addr = mem_start; addr < mem_end; addr += 4096) {
-  //   free_page((void *)addr);
-  // }
+  while (mem_start & 0xFFF)
+    ++mem_start; /* Ensure 4K aligned */
+  for (uint64_t addr = mem_start; addr < mem_end; addr += 4096) {
+    free_page((void *)addr);
+  }
 
   /* Delete identity mapping */
   uint64_t id_index = (PHY_BASE >> 30) & 0x1FF;
@@ -81,16 +83,21 @@ void page_init() {
   __root_pte[id_index] = create_pte(PHY_BASE, PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D);
 
   /* Higher half mapping */
+  /* The entire address space is mapped, not just the kernel 
+     because we need to be able to access any possible address 
+     by just calculating the offset. */
   uint64_t high_vaddr = VIRT_OFFSET + PHY_BASE;
   uint64_t high_index = (high_vaddr >> 30) & 0x1FF;
-  __root_pte[high_index] = create_pte(PHY_BASE, PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D);
+  for (size_t i = 0, offset = 0; i < 4; ++i, offset += GB) {
+     __root_pte[high_index + i] = create_pte(PHY_BASE + offset, PTE_V | PTE_R | PTE_W | PTE_X | PTE_A | PTE_D);
+  }
 }
 
 /* Create a mapping for a virtual address */
 void map_vaddr(uint64_t vaddr, uint64_t paddr, unsigned char flags) {
   uint64_t root_index = vaddr >> 30;
   flags |= 0x1; // All valid from here.
-  if (!((__root_pte[root_index] & 1)) || (__root_pte[root_index] & 1) && (__root_pte[root_index] & ~PTE_NODE)) {
+  if (!((__root_pte[root_index] & 1)) || ((__root_pte[root_index] & 1) && (__root_pte[root_index] & ~PTE_NODE))) {
     uint64_t frame = (uint64_t)alloc_page();
     memset((void *)frame, 0, 4096);
     uint64_t entry = create_pte(frame, (!PTE_U & !PTE_A & !PTE_D) | PTE_V);
