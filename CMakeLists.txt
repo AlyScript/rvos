@@ -8,7 +8,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/linker.ld)
-set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(ROOT_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(KINCLUDE_DIR ${ROOT_INCLUDE}/kinclude)
+set(UINCLUDE_DIR ${ROOT_INCLUDE}/uinclude)
+set(SHARED_INCLUDE_DIR ${ROOT_INCLUDE}/sinclude)
 
 set(RV_ARCH_FLAGS -march=rv64imac_zicsr -mabi=lp64)
 
@@ -22,9 +25,13 @@ add_executable(
     ${SRC_DIR}/kernel/interrupt.c
     ${SRC_DIR}/kernel/ecall.c
     ${SRC_DIR}/kernel/page.c
+    ${SRC_DIR}/payload.S
 )
 
-target_include_directories(kernel.bin PRIVATE ${INCLUDE_DIR})
+target_include_directories(
+    kernel.bin
+    PRIVATE ${KINCLUDE_DIR} ${SHARED_INCLUDE_DIR}
+)
 
 target_compile_options(
     kernel.bin
@@ -45,3 +52,31 @@ target_link_options(
 )
 
 target_link_libraries(kernel.bin PRIVATE gcc)
+
+add_executable(dummy.elf ${SRC_DIR}/dummy.c ${SRC_DIR}/usr_lib.c)
+
+target_include_directories(
+    dummy.elf
+    PRIVATE ${UINCLUDE_DIR} ${SHARED_INCLUDE_DIR}
+)
+
+target_compile_options(
+    dummy.elf
+    PRIVATE ${RV_ARCH_FLAGS} -O0 -ffreestanding -nostdlib -mcmodel=medany
+)
+
+target_link_options(dummy.elf PRIVATE ${RV_ARCH_FLAGS} -nostdlib -Ttext=0x0)
+
+# So we can .incbin into the kernel binary.
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dummy.bin
+    COMMAND
+        riscv64-unknown-elf-objcopy -O binary $<TARGET_FILE:dummy.elf>
+        ${CMAKE_CURRENT_BINARY_DIR}/dummy.bin
+    DEPENDS dummy.elf
+    COMMENT "Strip dummy.elf to raw flat binary dummy.bin"
+)
+
+add_custom_target(dummy_payload DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dummy.bin)
+
+add_dependencies(kernel.bin dummy_payload)

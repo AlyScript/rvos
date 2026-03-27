@@ -33,6 +33,9 @@ typedef struct pt_regs {
     uint64_t t4;        /* x29 */
     uint64_t t5;        /* x30 */
     uint64_t t6;        /* x31 */
+
+    uint64_t sepc;
+    uint64_t sstatus;
 } pt_regs;
 
 typedef void (*handler_t)(pt_regs *regs);

@@ -10,7 +10,7 @@ __shandler:
     csrrw sp, sscratch, sp
     
     /* Save all state. */ 
-    addi sp, sp, -256
+    addi sp, sp, -272
     sd x1,  8(sp)    
 
     /* User sp is in sscratch */
@@ -47,6 +47,12 @@ __shandler:
     sd x30, 240(sp)  
     sd x31, 248(sp)  
 
+    /* CSRs */
+    csrr t0, sepc
+    sd t0, 256(sp)
+    csrr t0, sstatus
+    sd t0, 264(sp)
+
     /* Multiplexing for right handler (interrupt or exception) */
     csrr t0, scause
     srli t0, t0, 63                       /* 1 if interrupt, else 0 */
@@ -67,6 +73,13 @@ __shandler:
     jalr t0                               /* Jump to handler */
 
     /* Restore all regs */
+    /* CSRs First */
+    ld t0, 256(sp)
+    csrw sepc, t0
+    ld t0, 264(sp)
+    csrw sstatus, t0
+
+    /* General Regs */
     ld x1,  8(sp)
 
     /* Restore saved user sp. Not strictly necessary for now, but might prove to be useful at some point */
@@ -109,6 +122,6 @@ __shandler:
     # addi t0, t0, 4                       
     # csrrw t0, sepc, t0
 
-    addi sp, sp, 256
+    addi sp, sp, 272
     csrrw sp, sscratch, sp /* Restore user sp */
     sret
