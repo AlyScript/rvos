@@ -36,8 +36,7 @@ void handle_store_fault(pt_regs *regs) { handle_reserved(regs); }
 
 void handle_ecall_u(pt_regs *regs) { 
     handle_syscall(regs);
-    uint64_t sepc = r_sepc();
-    w_sepc(sepc + 4);
+    regs->sepc += 4;
 }
 
 void handle_ecall_s(pt_regs *regs) { handle_reserved(regs); }
