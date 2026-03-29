@@ -1,8 +1,14 @@
 #include <interrupt.h>
+#include <proc.h>
 
 pt_regs* handle_s_soft_int(pt_regs *regs) { return handle_reserved(regs); }
 pt_regs* handle_m_soft_int(pt_regs *regs) { return handle_reserved(regs); }
-pt_regs* handle_s_timer_int(pt_regs *regs) { return handle_reserved(regs); }
+
+pt_regs* handle_s_timer_int(pt_regs *regs) { 
+  set_next_timer_interrupt();
+  return schedule(regs);
+}
+
 pt_regs* handle_m_timer_int(pt_regs *regs) { return handle_reserved(regs); }
 pt_regs* handle_s_ext_int(pt_regs *regs) { return handle_reserved(regs); }
 pt_regs* handle_m_ext_int(pt_regs *regs) { return handle_reserved(regs); }

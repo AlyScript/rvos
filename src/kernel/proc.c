@@ -1,6 +1,6 @@
+#include <proc.h>
 #include <page.h>
-#include <trap.h>
-#include <stdint.h>
+#include <sbi.h>
 
 extern char _dummy_bin_start[];
 extern char _dummy_bin_end[];
@@ -9,21 +9,90 @@ extern void switch_to_user(pt_regs *frame);
 
 extern uint64_t __root_pte[512]; 
 
-typedef enum { PROC_UNUSED, PROC_READY, PROC_RUNNING } proc_state_t;
-
-typedef struct {
-    int pid;
-    proc_state_t state;
-    uint64_t satp;         
-    pt_regs *trapframe;    
-} process_t;
-
 #define MAX_PROCESSES 4
 process_t process_table[MAX_PROCESSES];
 int next_pid = 1;
 
+process_t *current_process = 0;
+
+#define TIMER_INTERVAL 1000000 
+
+void set_next_timer_interrupt(void) {
+    uint64_t current_time;
+    
+    asm volatile("csrr %0, time" : "=r"(current_time));
+    
+    /* Tell OpenSBI to trigger a timer interrupt at T + TIMER_INTERVAL. */
+    sbi_set_timer(current_time + TIMER_INTERVAL);
+}
+
+void timer_init() {
+    /* Unmask timer interrupts. */
+    asm volatile("csrs sie, %0" : : "r"(1 << 5));
+    
+    /* Set the first alarm. */
+    set_next_timer_interrupt();
+}
+
+process_t* find_free_slot() {
+    for (int i = 0; i < MAX_PROCESSES; i++) {
+        if (process_table[i].state == PROC_UNUSED) {
+            return &process_table[i];
+        }
+    }
+    return 0;
+}
+
+pt_regs* schedule(pt_regs *interrupted_regs) {
+    /* Save the state of the outgoing process */
+    if (current_process != 0 && current_process->state == PROC_RUNNING) {
+        current_process->trapframe = interrupted_regs;
+        current_process->state = PROC_READY;
+    }
+
+    /* Determine where to start searching in the task list. */
+    int current_index = 0;
+    if (current_process != 0) {
+        current_index = current_process - process_table; 
+    }
+    
+    int next_index = (current_index + 1) % MAX_PROCESSES;
+    int started_at = next_index;
+    int found = 0;
+
+    /* Find next ready process */
+    do {
+        if (process_table[next_index].state == PROC_READY) {
+            found = 1;
+            break;
+        }
+        next_index = (next_index + 1) % MAX_PROCESSES;
+    } while (next_index != started_at);
+
+    /* If no other processes are ready we just resume the current one. */
+    if (!found) {
+        if (current_process != 0) {
+            current_process->state = PROC_RUNNING;
+            return current_process->trapframe;
+        }
+        // If there are absolutely no processes, return whatever interrupted us (likely kmain)
+        return interrupted_regs;
+    }
+
+    /* Context Switch */
+    current_process = &process_table[next_index];
+    current_process->state = PROC_RUNNING;
+
+    /* Need to change root page table in satp for the new process. */
+    asm volatile("csrw satp, %0" : : "r"(current_process->satp));
+    flush_tlb_global();
+
+    /* Return new execution context to the assembly restore sequence. */
+    return current_process->trapframe;
+}
+
 void spawn_payload_process() {
-    process_t *p = &process_table[0]; /* Hardcoded to 0 for now, only one process at a time. */
+    process_t *p = find_free_slot(); 
     p->pid = next_pid++;
 
     /* Allocate a distinct Root Page Table for this process */
@@ -65,9 +134,5 @@ void spawn_payload_process() {
 
     p->state = PROC_RUNNING;
 
-    /* Change the value of satp to point to the root page table for this process, then flush the tlb. */
-    asm volatile("csrw satp, %0" : : "r"(p->satp));
-    flush_tlb_global();
-
-    switch_to_user(p->trapframe);
+    p->state = PROC_READY;
 }

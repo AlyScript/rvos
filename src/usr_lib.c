@@ -1,5 +1,11 @@
 #include <usr_lib.h>
 #include <syscalls.h>
+#include <stdint.h>
+
+typedef __builtin_va_list va_list;
+#define va_start(v,l) __builtin_va_start(v,l)
+#define va_end(v)     __builtin_va_end(v)
+#define va_arg(v,l)   __builtin_va_arg(v,l)
 
 long syscall(long num, long arg0, long arg1, long arg2) {
     register long a0 asm("a0") = arg0;
@@ -31,3 +37,41 @@ void yield(void) {
     syscall(SYS_SCHED_YIELD, 0, 0, 0);
 }
 
+void puts(char *s) {
+    while (*s) putchar(*s++);
+}
+
+void print_int(uint64_t n) {
+    char buf[21];
+    int i = 19;
+    buf[20] = '\0';
+    if (n == 0) {
+        putchar('0');
+        return;
+    }
+    while (n > 0) {
+        buf[i--] = (n % 10) + '0';
+        n /= 10;
+    }
+    puts(&buf[i + 1]);
+}
+
+void printf(char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+
+    for (char *p = fmt; *p != '\0'; p++) {
+        if (*p != '%') {
+            putchar(*p);
+            continue;
+        }
+        switch (*++p) {
+            case 'c': putchar((char)va_arg(ap, int)); break;
+            case 's': puts(va_arg(ap, char *)); break;
+            case 'd':
+            case 'u': print_int(va_arg(ap, uint64_t)); break;
+            case '%': putchar('%'); break;
+        }
+    }
+    va_end(ap);
+}

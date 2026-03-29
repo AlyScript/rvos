@@ -131,6 +131,8 @@ switch_to_user:
     # addi t0, t0, 4                       
     # csrrw t0, sepc, t0
 
-    addi sp, sp, 272
-    csrrw sp, sscratch, sp /* Restore user sp */
+    addi t0, sp, 272 
+
+    csrrw sp, sscratch, sp /* Restore user sp and put kernel sp (kernel stack frame) in sscratch. */
+    csrw sscratch, t0      /* Put actual top of stack in sscratch */
     sret
