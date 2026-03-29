@@ -57,11 +57,5 @@ __vaddr_jump:
     mv a1, s1
     call kmain
 
-    /* Call init */
-    /* la ra, init */
-    csrw sepc, ra
-
-    sret
-
 _end:
     j _end

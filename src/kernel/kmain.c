@@ -1,16 +1,18 @@
-#include <page.h>
 #include <stdint.h>
+#include <page.h>
 
-#define VIRT_OFFSET 0xFFFFFFC000000000
+extern void __shandler(void);
 
-uint64_t bsp_hartid;
-uint64_t dtb_phys_addr;
-uint64_t dtb_virt_addr;
+extern void spawn_payload_process(void);
 
-void kmain(uint64_t hartid, uint64_t dtb_addr) {
-  bsp_hartid = hartid;
-  dtb_phys_addr = dtb_addr;
-  dtb_virt_addr = dtb_phys_addr + VIRT_OFFSET;
+void kmain(uint64_t hartid, uint64_t dtb) {
+    (void)hartid; 
+    (void)dtb;
 
-  // init_page_allocator();
+    spawn_payload_process();
+
+    /* Shouldn't ever get here */
+    while (1) {
+        asm volatile("wfi"); 
+    }
 }

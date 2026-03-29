@@ -16,11 +16,11 @@
 #define VIRT_OFFSET     0xFFFFFFC000000000ULL
 #define PHY_BASE        0x0000000080000000ULL
 
-#define pte_to_ptr(pte) ((uint64_t *)((((pte) >> 10) & 0x3FFFFFFFFFFULL) << 12)) /* Mask 44 Bits (PFN) */
+#define pte_to_ptr(pte) ((uint64_t *)__va((((pte) >> 10) & 0xFFFFFFFFFFFULL) << 12))
 
 /* Virtual to physical address and vice versa */
-#define __va(x)         (x + VIRT_OFFSET)
-#define __pa(x)         (x - VIRT_OFFSET)
+#define __va(pa) ((void *)((uint64_t)(pa) + VIRT_OFFSET))
+#define __pa(va) ((uint64_t)(va) - VIRT_OFFSET)
 
 extern uint64_t MEM_LIMIT; /* 5GB */
 
@@ -43,4 +43,7 @@ int free_page(void *page);
 void pm_init(uint64_t mem_start, uint64_t mem_end);
 // void init_page_allocator();
 void page_init();
-void map_vaddr(uint64_t vaddr, uint64_t paddr, unsigned char flags);
+void map_vaddr(uint64_t *root_table, uint64_t vaddr, uint64_t paddr, unsigned char flags);
+uint64_t create_pte(uint64_t addr, unsigned char flags);
+void *memset(void *dest, const int val, size_t n);
+void *memcpy(void *dest, const void *src, size_t n);

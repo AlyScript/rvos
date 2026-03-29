@@ -72,6 +72,10 @@ __shandler:
     mv a0, sp                             /* Pass pointer to current stack frame as first argument */
     jalr t0                               /* Jump to handler */
 
+.global switch_to_user
+switch_to_user:
+    mv sp, a0
+
     /* Restore all regs */
     /* CSRs First */
     ld t0, 256(sp)
@@ -82,8 +86,8 @@ __shandler:
     /* General Regs */
     ld x1,  8(sp)
 
-    /* Restore saved user sp. Not strictly necessary for now, but might prove to be useful at some point */
-    /* i.e. if we want to change users sp in a function call... */
+    /* Restore saved user sp. Mostly used for switching between processes. */
+    /* x3 can be safely clobbered since we are restoring it next */
     ld x3, 16(sp)
     csrw sscratch, x3
 

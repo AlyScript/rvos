@@ -1,6 +1,5 @@
 #include <page.h>
 
-
 extern uint64_t _start;
 
 uint64_t MEM_LIMIT = 5ULL * GB; /* 3GB */
@@ -93,40 +92,41 @@ void page_init() {
   }
 }
 
-/* Create a mapping for a virtual address */
-void map_vaddr(uint64_t vaddr, uint64_t paddr, unsigned char flags) {
-  /* Level 2 */
-  uint64_t root_index = vaddr >> 30;
-  flags |= 0x1; // All valid from here.
-  if (!((__root_pte[root_index] & 1)) || ((__root_pte[root_index] & 1) && (__root_pte[root_index] & ~PTE_NODE))) {
-    uint64_t frame = (uint64_t)alloc_page();
-    memset((void *)frame, 0, 4096);
-    uint64_t entry = create_pte(frame, (!PTE_U & !PTE_A & !PTE_D) | PTE_V);
-    __root_pte[root_index] = entry;
+/* Create a mapping for a virtual address in a specific page table, pointed at by root_table. */
+void map_vaddr(uint64_t *root_table, uint64_t vaddr, uint64_t paddr, unsigned char flags) {
+    /* Level 2 */
+    uint64_t root_index = (vaddr >> 30) & 0x1FF;
+    
+    if (!(root_table[root_index] & PTE_V)) {
+        uint64_t frame_phys = (uint64_t)alloc_page();
+        
+        void *frame_virt = __va(frame_phys);
+        memset(frame_virt, 0, 4096);
+        
+        root_table[root_index] = create_pte(frame_phys, PTE_V);
+    }
+
+    /* Level 1 */
+    uint64_t *level_1_table = pte_to_ptr(root_table[root_index]);
+    uint64_t level_one_index = (vaddr >> 21) & 0x1FF;
+    
+    if (!(level_1_table[level_one_index] & PTE_V)) {
+        uint64_t frame_phys = (uint64_t)alloc_page();
+        
+        void *frame_virt = __va(frame_phys);
+        memset(frame_virt, 0, 4096);
+        
+        level_1_table[level_one_index] = create_pte(frame_phys, PTE_V);
+    }
+
+    /* Final Level (Leaf) */
+    uint64_t *leaf_table = pte_to_ptr(level_1_table[level_one_index]);
+    uint64_t leaf_index = (vaddr >> 12) & 0x1FF;
+
+    uint64_t entry = create_pte(paddr & ~0xFFF, flags | PTE_V);
+    leaf_table[leaf_index] = entry;
+
     flush_tlb_global();
-  }
-
-  /* Level 1 */
-  uint64_t *level_1_table = pte_to_ptr(__root_pte[root_index]);
-  uint64_t level_one_index = (vaddr >> 21) & 0x1FF;
-  if (!(level_1_table[level_one_index] & 1) ||
-      ((level_1_table[level_one_index] & 1) && (level_1_table[level_one_index] & ~PTE_NODE))) {
-    uint64_t frame = (uint64_t)alloc_page();
-    memset((void *)frame, 0, 4096);
-    uint64_t entry = create_pte(frame, (!PTE_U & !PTE_A & !PTE_D) | PTE_V);
-    level_1_table[level_one_index] = entry;
-    flush_tlb_global();
-  }
-
-  /* Final Level */
-  uint64_t *leaf_table = pte_to_ptr(level_1_table[level_one_index]);
-  uint64_t leaf_index = (vaddr >> 12) & 0x1FF; /* Indexes are 9 bits */
-
-  uint64_t entry = create_pte(paddr & ~0xFFF, flags | PTE_U | PTE_V | PTE_A | PTE_W | PTE_D);
-
-  leaf_table[leaf_index] = entry;
-
-  flush_tlb_global();
 }
 
 // Source - https://stackoverflow.com/a/66809749

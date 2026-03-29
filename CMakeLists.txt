@@ -25,6 +25,7 @@ add_executable(
     ${SRC_DIR}/kernel/interrupt.c
     ${SRC_DIR}/kernel/ecall.c
     ${SRC_DIR}/kernel/page.c
+    ${SRC_DIR}/kernel/proc.c
     ${SRC_DIR}/payload.S
 )
 

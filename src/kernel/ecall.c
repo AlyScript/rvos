@@ -2,6 +2,8 @@
 #include <page.h>
 #include <sbi.h>
 
+extern uint64_t __root_pte[]; 
+
 static inline void w_sepc(uint64_t val) {
   asm volatile("csrw sepc, %0" : : "r"(val));
 }
@@ -56,8 +58,7 @@ void handle_insn_page_fault(pt_regs *regs) {
 
   // First check if due to being invalid
   // uint64_t entry = __root_pte[(sepc >> 30) & 0x1FF];
-  map_vaddr(stval, sepc, PTE_U | PTE_V | PTE_R | PTE_X | (spp << 4));
-  // flush_tlb_global();
+  map_vaddr(__root_pte, stval, sepc, PTE_U | PTE_V | PTE_R | PTE_X | (spp << 4));
 }
 
 void handle_load_page_fault(pt_regs *regs) {
