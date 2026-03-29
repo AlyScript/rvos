@@ -1,11 +1,7 @@
 #include <usr_lib.h>
 #include <syscalls.h>
 #include <stdint.h>
-
-typedef __builtin_va_list va_list;
-#define va_start(v,l) __builtin_va_start(v,l)
-#define va_end(v)     __builtin_va_end(v)
-#define va_arg(v,l)   __builtin_va_arg(v,l)
+#include <stdarg.h>
 
 long syscall(long num, long arg0, long arg1, long arg2) {
     register long a0 asm("a0") = arg0;
@@ -74,4 +70,9 @@ void printf(char *fmt, ...) {
         }
     }
     va_end(ap);
+}
+
+void exit(int code) {
+    syscall(SYS_EXIT, code, 0, 0);
+    while(1); /* Shouldn't reach here. */
 }

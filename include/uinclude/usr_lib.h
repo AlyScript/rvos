@@ -5,3 +5,4 @@ void putchar(char c);
 long getpid(void);
 void yield(void);
 void printf(char *fmt, ...);
+void exit(int code);

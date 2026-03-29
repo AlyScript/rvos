@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <trap.h>
 
-void handle_syscall(pt_regs *regs) {
+pt_regs* handle_syscall(pt_regs *regs) {
   uint64_t syscall = regs->a7;
 
   switch (syscall) {
@@ -15,5 +15,8 @@ void handle_syscall(pt_regs *regs) {
   case SYS_GETPID:
     regs->a0 = current_process->pid;
     break;
+  case SYS_EXIT:
+    return pexit(regs);
   }
+  return regs;
 }

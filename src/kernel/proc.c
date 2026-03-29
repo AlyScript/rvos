@@ -136,3 +136,13 @@ void spawn_payload_process() {
 
     p->state = PROC_READY;
 }
+
+pt_regs* pexit(pt_regs *regs) {
+    if (current_process != 0) {
+        sbi_printf("[Kernel] Reaping PID %d...\n", current_process->pid);
+        current_process->state = PROC_UNUSED;
+        current_process = 0;
+    }
+    
+    return schedule(regs);
+}

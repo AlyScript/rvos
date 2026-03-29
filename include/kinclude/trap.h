@@ -42,4 +42,4 @@ typedef struct pt_regs {
 
 typedef pt_regs* (*handler_t)(pt_regs *);
 
-void handle_syscall(pt_regs *regs);
+pt_regs* handle_syscall(pt_regs *regs);
