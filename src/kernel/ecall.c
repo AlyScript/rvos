@@ -26,30 +26,35 @@ static inline uint64_t r_sstatus() {
   return x;
 }
 
-
-void handle_insn_misaligned(pt_regs *regs) { handle_reserved(regs); }
-void handle_insn_fault(pt_regs *regs) { handle_reserved(regs); }
-void handle_illegal_insn(pt_regs *regs) { handle_reserved(regs); }
-void handle_breakpoint(pt_regs *regs) { handle_reserved(regs); }
-void handle_load_misaligned(pt_regs *regs) { handle_reserved(regs); }
-void handle_load_fault(pt_regs *regs) { handle_reserved(regs); }
-void handle_store_misaligned(pt_regs *regs) { handle_reserved(regs); }
-void handle_store_fault(pt_regs *regs) { handle_reserved(regs); }
-
-void handle_ecall_u(pt_regs *regs) { 
-    handle_syscall(regs);
-    regs->sepc += 4;
+pt_regs* handle_reserved(pt_regs *regs) {
+    while(1); 
+    return regs;
 }
 
-void handle_ecall_s(pt_regs *regs) { handle_reserved(regs); }
-void handle_ecall_m(pt_regs *regs) { handle_reserved(regs); }
+pt_regs* handle_insn_misaligned(pt_regs *regs) { return handle_reserved(regs); }
+pt_regs* handle_insn_fault(pt_regs *regs) { return handle_reserved(regs); }
+pt_regs* handle_illegal_insn(pt_regs *regs) { return handle_reserved(regs); }
+pt_regs* handle_breakpoint(pt_regs *regs) { return handle_reserved(regs); }
+pt_regs* handle_load_misaligned(pt_regs *regs) { return handle_reserved(regs); }
+pt_regs* handle_load_fault(pt_regs *regs) { return handle_reserved(regs); }
+pt_regs* handle_store_misaligned(pt_regs *regs) { return handle_reserved(regs); }
+pt_regs* handle_store_fault(pt_regs *regs) { return handle_reserved(regs); }
+
+pt_regs* handle_ecall_u(pt_regs *regs) { 
+    handle_syscall(regs);
+    regs->sepc += 4;
+    return regs;
+}
+
+pt_regs* handle_ecall_s(pt_regs *regs) { return handle_reserved(regs); }
+pt_regs* handle_ecall_m(pt_regs *regs) { return handle_reserved(regs); }
 
 /* Page fault handlers. There are a number of cases to handle here. */
 /* If a fault occurred because a page was invalid, i.e. V == 0 and ONLY because of this, then we need to allocate one.
  */
 /* In any case, the first thing to do is check the address that caused the fault. */
 /* From there, we can identify the PTE that caused the trap and then handle the fault accordingly. */
-void handle_insn_page_fault(pt_regs *regs) {
+pt_regs* handle_insn_page_fault(pt_regs *regs) {
   uint64_t sepc = r_sepc();
   uint64_t stval = r_stval();
   uint64_t sstatus = r_sstatus();
@@ -59,19 +64,20 @@ void handle_insn_page_fault(pt_regs *regs) {
   // First check if due to being invalid
   // uint64_t entry = __root_pte[(sepc >> 30) & 0x1FF];
   map_vaddr(__root_pte, stval, sepc, PTE_U | PTE_V | PTE_R | PTE_X | (spp << 4));
+  return regs;
 }
 
-void handle_load_page_fault(pt_regs *regs) {
-    handle_insn_page_fault(regs);
+pt_regs* handle_load_page_fault(pt_regs *regs) {
+    return handle_insn_page_fault(regs);
 }
 
-void handle_store_page_fault(pt_regs *regs) {
-    handle_insn_page_fault(regs);
+pt_regs* handle_store_page_fault(pt_regs *regs) {
+    return handle_insn_page_fault(regs);
 }
 
-void handle_double_trap(pt_regs *regs) { handle_reserved(regs); }
-void handle_sw_check(pt_regs *regs) { handle_reserved(regs); }
-void handle_hw_error(pt_regs *regs) { handle_reserved(regs); }
+pt_regs* handle_double_trap(pt_regs *regs) { return handle_reserved(regs); }
+pt_regs* handle_sw_check(pt_regs *regs) { return handle_reserved(regs); }
+pt_regs* handle_hw_error(pt_regs *regs) { return handle_reserved(regs); }
 
 const handler_t __etable[] = {[0] = handle_insn_misaligned,   [1] = handle_insn_fault,       [2] = handle_illegal_insn,
                               [3] = handle_breakpoint,        [4] = handle_load_misaligned,  [5] = handle_load_fault,

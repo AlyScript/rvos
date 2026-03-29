@@ -36,8 +36,12 @@ typedef struct pf {
 extern uint64_t __root_pte[512];
 extern pf *free_list_head;
 
-// uint64_t* pte_to_ptr(uint64_t pte);
-static inline void flush_tlb_global();
+static inline void flush_tlb_global() {
+  // sfence.vma rs1, rs2
+  // rs1 = 0: flush all addresses
+  // rs2 = 0: flush all address space identifiers (ASIDs)
+  asm volatile("sfence.vma zero, zero" : : : "memory");
+}
 void *alloc_page();
 int free_page(void *page);
 void pm_init(uint64_t mem_start, uint64_t mem_end);

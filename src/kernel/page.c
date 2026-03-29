@@ -7,17 +7,11 @@ pf *free_list_head = 0;
 
 __attribute__((aligned(4096))) uint64_t __root_pte[512] = {0};
 
-static inline void flush_tlb_global() {
-  // sfence.vma rs1, rs2
-  // rs1 = 0: flush all addresses
-  // rs2 = 0: flush all address space identifiers (ASIDs)
-  asm volatile("sfence.vma zero, zero" : : : "memory");
-}
-
 void *memset(void *dest, const int val, size_t n) {
   for (size_t i = 0; i < n; i++) {
     ((char *)dest)[i] = val;
   }
+  return dest;
 }
 
 /* SATP: This register holds the physical page number (PPN) of the root page table, i.e., its supervisor physical
@@ -136,4 +130,5 @@ void *memcpy(void *dest, const void *src, size_t n) {
   for (size_t i = 0; i < n; i++) {
     ((char *)dest)[i] = ((char *)src)[i];
   }
+  return dest;
 }

@@ -1,9 +1,14 @@
 /* Function pointers to exception and interrupt handlers */
+.extern __etable
+.extern __itable
+.section .rodata
 .align 3
 __table:
     .dword __etable
     .dword __itable
 
+.section .text
+.align 2
 .global __shandler
 __shandler:
     /* Swap to supervisor stack. */ 

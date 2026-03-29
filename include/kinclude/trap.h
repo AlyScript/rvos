@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 
 typedef struct pt_regs {
@@ -38,7 +40,6 @@ typedef struct pt_regs {
     uint64_t sstatus;
 } pt_regs;
 
-typedef void (*handler_t)(pt_regs *regs);
+typedef pt_regs* (*handler_t)(pt_regs *);
 
-void handle_reserved(pt_regs *regs);
 void handle_syscall(pt_regs *regs);

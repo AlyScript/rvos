@@ -1,11 +1,7 @@
-#include "sbi.h"
-#include "syscalls.h"
+#include <sbi.h>
+#include <syscalls.h>
 #include <stdint.h>
 #include <trap.h>
-
-void handle_reserved(pt_regs *regs) {
-    while(1); 
-}
 
 void handle_syscall(pt_regs *regs) {
   uint64_t syscall = regs->a7;
