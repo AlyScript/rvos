@@ -2,9 +2,6 @@
 #include <page.h>
 #include <sbi.h>
 
-extern char _dummy_bin_start[];
-extern char _dummy_bin_end[];
-
 extern void switch_to_user(pt_regs *frame);
 
 extern uint64_t __root_pte[512]; 
@@ -91,7 +88,7 @@ pt_regs* schedule(pt_regs *interrupted_regs) {
     return current_process->trapframe;
 }
 
-void spawn_payload_process() {
+int spawn_payload_process(char *bin_start, char *bin_end) {
     process_t *p = find_free_slot(); 
     p->pid = next_pid++;
 
@@ -107,11 +104,20 @@ void spawn_payload_process() {
     p->satp = (8ULL << 60) | (root_pt_phys >> 12); 
 
     /* Map the binary that we are injecting */
-    uint64_t payload_size = (uint64_t)_dummy_bin_end - (uint64_t)_dummy_bin_start;
+    uint64_t payload_size = (uint64_t)bin_end - (uint64_t)bin_start;
+
+    sbi_printf("[Kernel] Spawning PID %d | Payload Size: %u bytes\n", p->pid, payload_size);
+    
+    if (payload_size > 4096) {
+        sbi_printf("[Kernel] PANIC: Payload exceeds 1 page (4KB) limit!\n");
+        return -1;
+    }
+
     uint64_t payload_phys = (uint64_t)alloc_page();
     void *payload_virt = (void *)__va((void*)payload_phys);
     
-    memcpy(payload_virt, _dummy_bin_start, payload_size);
+    memcpy(payload_virt, bin_start, payload_size);
+    asm volatile("fence.i" ::: "memory");
 
     /* Map into *this processes* page table at virtual address 0x0 */
     map_vaddr(root_pt_virt, 0x0, payload_phys, PTE_U | PTE_R | PTE_W | PTE_X);
@@ -124,8 +130,10 @@ void spawn_payload_process() {
     /* Fabricate the Trap Frame in Kernel Memory */
     /* This is needed, because otherwise, when we do an sret, the frame we would be using would be the one belonging to the kernel in its current context. */
     /* We set all the relevant registers so that when we return to user mode, we go to the current process virtual address 0, with all the right registers set. */
-    uint64_t tf_phys = (uint64_t)alloc_page();
-    p->trapframe = (pt_regs *)__va((void*)tf_phys);
+    // uint64_t tf_phys = (uint64_t)alloc_page();
+    uint64_t kstack_phys = (uint64_t)alloc_page();
+    p->trapframe = (pt_regs *)((uint64_t)__va((void*)kstack_phys) + 4096 - sizeof(pt_regs));
+    // p->trapframe = (pt_regs *)__va((void*)tf_phys);
     memset(p->trapframe, 0, sizeof(pt_regs));
 
     p->trapframe->sepc = 0x0; 
@@ -135,6 +143,7 @@ void spawn_payload_process() {
     p->state = PROC_RUNNING;
 
     p->state = PROC_READY;
+    return p->pid;
 }
 
 pt_regs* pexit(pt_regs *regs) {
@@ -145,4 +154,20 @@ pt_regs* pexit(pt_regs *regs) {
     }
     
     return schedule(regs);
+}
+
+int pkill(int pid) {
+    for (int i = 0; i < MAX_PROCESSES; i++) {
+        if (process_table[i].state != PROC_UNUSED && process_table[i].pid == pid) {
+            
+            sbi_printf("[Kernel] Process %d killed by signal.\n", pid);
+            
+            process_table[i].state = PROC_UNUSED;
+            
+            /* TODO: Free up this processes memory */
+            
+            return 0; 
+        }
+    }
+    return -1; 
 }

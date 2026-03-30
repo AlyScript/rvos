@@ -8,5 +8,6 @@ struct sbiret {
 };
 
 void sbi_putchar(const char c);
+long sbi_getchar();
 void sbi_set_timer(uint64_t stime_value);
 void sbi_printf(const char *fmt, ...);

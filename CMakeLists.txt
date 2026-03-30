@@ -16,7 +16,7 @@ set(KINCLUDE_DIR ${ROOT_INCLUDE}/kinclude)
 set(UINCLUDE_DIR ${ROOT_INCLUDE}/uinclude)
 set(SHARED_INCLUDE_DIR ${ROOT_INCLUDE}/sinclude)
 
-set(RV_ARCH_FLAGS -march=rv64imac_zicsr -mabi=lp64)
+set(RV_ARCH_FLAGS -march=rv64imac_zicsr_zifencei -mabi=lp64)
 
 add_executable(
     kernel.bin
@@ -69,9 +69,11 @@ target_compile_options(
     PRIVATE ${RV_ARCH_FLAGS} -O0 -ffreestanding -nostdlib -mcmodel=medany
 )
 
-target_link_options(dummy.elf PRIVATE ${RV_ARCH_FLAGS} -nostdlib -Ttext=0x0)
+target_link_options(
+    dummy.elf
+    PRIVATE ${RV_ARCH_FLAGS} -nostdlib -T${SRC_DIR}/user.ld
+)
 
-# So we can .incbin into the kernel binary.
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dummy.bin
     COMMAND
@@ -81,6 +83,42 @@ add_custom_command(
     COMMENT "Strip dummy.elf to raw flat binary dummy.bin"
 )
 
-add_custom_target(dummy_payload DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/dummy.bin)
+add_executable(shell.elf ${SRC_DIR}/shell.c ${SRC_DIR}/usr_lib.c)
+
+target_include_directories(
+    shell.elf
+    PRIVATE ${UINCLUDE_DIR} ${SHARED_INCLUDE_DIR}
+)
+target_compile_options(
+    shell.elf
+    PRIVATE ${RV_ARCH_FLAGS} -O0 -ffreestanding -nostdlib -mcmodel=medany
+)
+target_link_options(
+    shell.elf
+    PRIVATE ${RV_ARCH_FLAGS} -nostdlib -T${SRC_DIR}/user.ld
+)
+
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/shell.bin
+    COMMAND
+        riscv64-unknown-elf-objcopy -O binary $<TARGET_FILE:shell.elf>
+        ${CMAKE_CURRENT_BINARY_DIR}/shell.bin
+    DEPENDS shell.elf
+    COMMENT "Strip shell.elf to raw flat binary shell.bin"
+)
+
+add_custom_target(
+    dummy_payload
+    DEPENDS
+        ${CMAKE_CURRENT_BINARY_DIR}/dummy.bin
+        ${CMAKE_CURRENT_BINARY_DIR}/shell.bin
+)
+
+set_source_files_properties(
+    ${SRC_DIR}/payload.S
+    PROPERTIES
+        OBJECT_DEPENDS
+            "${CMAKE_CURRENT_BINARY_DIR}/dummy.bin;${CMAKE_CURRENT_BINARY_DIR}/shell.bin"
+)
 
 add_dependencies(kernel.bin dummy_payload)

@@ -25,6 +25,17 @@ void putchar(char c) {
   asm volatile("ecall" : "+r"(a0) : "r"(a0), "r"(a7) : "memory");
 }
 
+char getchar(void) {
+    long c;
+    while (1) {
+        c = syscall(SYS_GETCHAR, 0, 0, 0);
+        if (c != -1) {
+            return (char)c;
+        }
+        yield(); 
+    }
+}
+
 long getpid(void) {
     return syscall(SYS_GETPID, 0, 0, 0);
 }

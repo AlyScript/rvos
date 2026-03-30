@@ -79,60 +79,50 @@ __shandler:
 
 .global switch_to_user
 switch_to_user:
-    mv sp, a0
+    addi t0, a0, 272
+    csrw sscratch, t0
 
-    /* Restore all regs */
-    /* CSRs First */
-    ld t0, 256(sp)
+    /* 2. Restore CSRs */
+    ld t0, 256(a0)
     csrw sepc, t0
-    ld t0, 264(sp)
+    ld t0, 264(a0)
     csrw sstatus, t0
 
-    /* General Regs */
-    ld x1,  8(sp)
+    /* 3. Restore all general purpose registers (except a0) */
+    ld x1,   8(a0)
+    ld x2,  16(a0)  /* Restores the true user stack pointer! */
+    ld x3,  24(a0)
+    ld x4,  32(a0)
+    ld x5,  40(a0)  /* t0 is now safely restored and left alone! */
+    ld x6,  48(a0)
+    ld x7,  56(a0)
+    ld x8,  64(a0)
+    ld x9,  72(a0)
+    /* Skip x10 (a0) for now, we are using it to read memory! */
+    ld x11, 88(a0)
+    ld x12, 96(a0)
+    ld x13, 104(a0)
+    ld x14, 112(a0)
+    ld x15, 120(a0)
+    ld x16, 128(a0)
+    ld x17, 136(a0)
+    ld x18, 144(a0)
+    ld x19, 152(a0)
+    ld x20, 160(a0)
+    ld x21, 168(a0)
+    ld x22, 176(a0)
+    ld x23, 184(a0)
+    ld x24, 192(a0)
+    ld x25, 200(a0)
+    ld x26, 208(a0)
+    ld x27, 216(a0)
+    ld x28, 224(a0)
+    ld x29, 232(a0)
+    ld x30, 240(a0)
+    ld x31, 248(a0)
 
-    /* Restore saved user sp. Mostly used for switching between processes. */
-    /* x3 can be safely clobbered since we are restoring it next */
-    ld x3, 16(sp)
-    csrw sscratch, x3
+    /* 4. Restore a0 last */
+    ld x10, 80(a0)
 
-    ld x3,  24(sp)
-    ld x4,  32(sp)
-    ld x5,  40(sp)
-    ld x6,  48(sp)
-    ld x7,  56(sp)
-    ld x8,  64(sp)
-    ld x9,  72(sp)
-    ld x10, 80(sp)
-    ld x11, 88(sp)
-    ld x12, 96(sp)
-    ld x13, 104(sp)
-    ld x14, 112(sp)
-    ld x15, 120(sp)
-    ld x16, 128(sp)
-    ld x17, 136(sp)
-    ld x18, 144(sp)
-    ld x19, 152(sp)
-    ld x20, 160(sp)
-    ld x21, 168(sp)
-    ld x22, 176(sp)
-    ld x23, 184(sp)
-    ld x24, 192(sp)
-    ld x25, 200(sp)
-    ld x26, 208(sp)
-    ld x27, 216(sp)
-    ld x28, 224(sp)
-    ld x29, 232(sp)
-    ld x30, 240(sp)
-    ld x31, 248(sp)
-
-    /* get stuck in an infinite loop if we don't do this */
-    # csrrw t0, sepc, t0
-    # addi t0, t0, 4                       
-    # csrrw t0, sepc, t0
-
-    addi t0, sp, 272 
-
-    csrrw sp, sscratch, sp /* Restore user sp and put kernel sp (kernel stack frame) in sscratch. */
-    csrw sscratch, t0      /* Put actual top of stack in sscratch */
+    /* 5. Drop into user space */
     sret

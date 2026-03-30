@@ -24,5 +24,6 @@ extern process_t *current_process;
 void timer_init(void);
 void set_next_timer_interrupt(void);
 pt_regs* schedule(pt_regs *interrupted_regs);
-void spawn_payload_process(void);
+int spawn_payload_process(char *bin_start, char *bin_end);
+int pkill(int pid);
 pt_regs* pexit(pt_regs *regs);

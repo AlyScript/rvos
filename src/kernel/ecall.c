@@ -1,8 +1,11 @@
 #include <ecall.h>
 #include <page.h>
 #include <sbi.h>
+#include <proc.h>
 
 extern uint64_t __root_pte[]; 
+extern pt_regs* pexit(pt_regs *regs);
+extern process_t *current_process;
 
 static inline void w_sepc(uint64_t val) {
   asm volatile("csrw sepc, %0" : : "r"(val));
@@ -26,9 +29,16 @@ static inline uint64_t r_sstatus() {
   return x;
 }
 
+static inline uint64_t r_scause() {
+  uint64_t x;
+  asm volatile("csrr %0, scause" : "=r"(x));
+  return x;
+}
+
 pt_regs* handle_reserved(pt_regs *regs) {
-    while(1); 
-    return regs;
+  sbi_printf("\n[Kernel] FATAL: Unhandled Exception %d in PID %d at address 0x%x. Terminating...\n", r_scause(), current_process->pid, regs->sepc);
+  regs = pexit(regs);
+  return regs;
 }
 
 pt_regs* handle_insn_misaligned(pt_regs *regs) { return handle_reserved(regs); }

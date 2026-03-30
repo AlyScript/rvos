@@ -30,6 +30,11 @@ void sbi_putchar(const char c) {
   sbi_call(1, 0, c, 0, 0, 0, 0, 0);
 }
 
+long sbi_getchar(void) {
+    struct sbiret ret = sbi_call(2, 0, 0, 0, 0, 0, 0, 0);
+    return ret.error; 
+}
+
 void sbi_set_timer(uint64_t stime_value) {
   sbi_call(0x54494D45, 0, stime_value, 0, 0, 0, 0, 0);
 }

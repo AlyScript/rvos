@@ -6,3 +6,4 @@ long getpid(void);
 void yield(void);
 void printf(char *fmt, ...);
 void exit(int code);
+char getchar(void);
